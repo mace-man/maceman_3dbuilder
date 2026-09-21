@@ -22,11 +22,30 @@ Microsoft 3D Builder と同等の機能を持った、ブラウザ完全ロー�
 
 ## 🚀 起動方法
 
-### 必要環境
+### 💡 ワンクリック起動（推奨）
+初回依存パッケージのインストールからローカルサーバー起動、ブラウザの自動オープンまでを自動で行うスクリプトを用意しています。
+
+- **Windows（バッチファイル）**:  
+  エクスプローラーで **`start.bat`** をダブルクリックするだけです。
+- **Windows（PowerShell）**:  
+  ```powershell
+  .\start.ps1
+  ```
+- **macOS / Linux / Git Bash（シェルスクリプト）**:  
+  ```bash
+  chmod +x start.sh  # 初回のみ実行権限付与
+  ./start.sh
+  ```
+
+---
+
+### 💻 手動コマンド起動
+
+#### 必要環境
 - **Node.js**: v18.0 以上（推奨: v20+ / v24+）
 - **npm**: v9.0 以上
 
-### 1. 初回依存関係インストール
+#### 1. 初回依存関係インストール
 プロジェクトのルートディレクトリで以下を実行します：
 
 ```bash
@@ -35,7 +54,7 @@ npm install
 
 > **Note (Windows環境)**: PowerShellでスクリプトの実行ポリシー制限（`UnauthorizedAccess`）が出る場合は、`npm.cmd install` を使用するか、管理者権限のターミナルで `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` を実行してください。
 
-### 2. ローカルサーバー起動
+#### 2. ローカルサーバー起動
 以下のコマンドで開発サーバーを起動します：
 
 ```bash
@@ -126,6 +145,9 @@ maceman_3dbuilder/
 ├── index.html              # メインエントリーポイント（Fluent Design UI構造）
 ├── package.json            # 依存関係（Three.js, three-bvh-csg, Vite）
 ├── vite.config.js          # Vite設定
+├── start.bat               # Windows用起動バッチファイル
+├── start.ps1               # Windows用PowerShell起動スクリプト
+├── start.sh                # macOS/Linux用起動シェルスクリプト
 ├── README.md               # 本ドキュメント
 └── src/
     ├── main.js             # アプリケーション全体の初期化とイベント制御

@@ -1,174 +1,180 @@
 # mace-man 3D Builder
 
-Microsoft 3D Builder と同等の機能を持った、ブラウザ完全ローカル動作型の簡易3Dモデル編集ツール「mace-man 3D Builder」です。  
-外部ネットワーク通信を一切行わず、ローカル環境だけで高速・安全に動作します。
+[![English](https://img.shields.io/badge/Language-English-blue.svg)](README.md)
+[![日本語](https://img.shields.io/badge/Language-日本語-green.svg)](README-jp.md)
+
+**mace-man 3D Builder** is a lightweight, browser-based 3D modeling and editing application inspired by Microsoft 3D Builder.  
+It runs **100% locally** in your browser without any external network communication, ensuring high performance, privacy, and full offline capability.
 
 ---
 
-## 🌟 特徴
+## 🌟 Key Features
 
-- **完全オフライン動作**: 外部CDNや外部APIへの通信は一切発生しません。すべての3Dレンダリング、演算、ファイル読み書きがブラウザ内で完結します。
-- **直感的な操作性（Fluent Design）**: Windows 11 / 3D BuilderライクなクリーンなUI。
-- **高度なメッシュ編集**:
-  - **ブーリアン演算**: 結合（Union）、型抜き（Subtract）、交差（Intersect）
-  - **平面切断（Split）**: 任意の高さ・角度でメッシュをきれいにスライス（上/下/両方保持、切断面の自動穴埋め）
-  - **接地（Lay Flat）**: 底面を床面（Y=0）にピタッと合わせる
-  - **整列（Align）**: 複数オブジェクトをX/Z軸で中央揃え
-- **多彩なファイル形式に対応**:
-  - **読み込み（ドラッグ＆ドロップ対応）**: STL, OBJ, 3MF, GLTF/GLB, PLY
-  - **書き出し**: STL（バイナリ）, OBJ, GLB, PLY
+- **100% Offline & Private**: Zero external API or CDN requests. All 3D rendering, CSG Boolean operations, and file read/write operations execute entirely within your local browser.
+- **Fluent Design Interface**: Clean, intuitive Windows 11 / 3D Builder-inspired aesthetic with glassmorphism, responsive panels, and dark mode.
+- **Advanced Mesh Editing**:
+  - **Boolean Operations**: Union (Merge), Subtract (Difference), Intersect
+  - **Split / Plane Slicing**: Cut models at any height and angle with automatic polygon capping (keep top, keep bottom, or split both)
+  - **Lay Flat (Settle)**: Automatically snap bottom-most vertices to the build plate (`Y = 0`)
+  - **Align**: Center and align multiple objects along the X / Z axes
+- **Comprehensive 3D Format Support**:
+  - **Import (File Picker & Drag-and-Drop)**: STL (Binary & ASCII), OBJ, 3MF, GLTF/GLB, PLY
+  - **Export**: STL (Binary for 3D printing), OBJ, GLB, PLY
 
 ---
 
-## 🚀 起動方法
+## 🚀 Getting Started
 
-### 💡 ワンクリック起動（推奨）
-初回依存パッケージのインストールからローカルサーバー起動、ブラウザの自動オープンまでを自動で行うスクリプトを用意しています。
+### 💡 One-Click Launch (Recommended)
+Convenient startup scripts are provided to automatically install dependencies (on first run), launch the local dev server, and open your default browser.
 
-- **Windows（バッチファイル）**:  
-  エクスプローラーで **`start.bat`** をダブルクリックするだけです。
-- **Windows（PowerShell）**:  
+- **Windows (Batch file)**:  
+  Double-click **`start.bat`** in File Explorer.
+- **Windows (PowerShell)**:  
   ```powershell
   .\start.ps1
   ```
-- **macOS / Linux / Git Bash（シェルスクリプト）**:  
+- **macOS / Linux / Git Bash (Shell script)**:  
   ```bash
-  chmod +x start.sh  # 初回のみ実行権限付与
+  chmod +x start.sh  # Only needed the first time
   ./start.sh
   ```
 
 ---
 
-### 💻 手動コマンド起動
+### 💻 Manual CLI Launch
 
-#### 必要環境
-- **Node.js**: v18.0 以上（推奨: v20+ / v24+）
-- **npm**: v9.0 以上
+#### Prerequisites
+- **Node.js**: v18.0 or higher (v20+ / v24+ recommended)
+- **npm**: v9.0 or higher
 
-#### 1. 初回依存関係インストール
-プロジェクトのルートディレクトリで以下を実行します：
+#### 1. Install Dependencies
+Run in the project root directory:
 
 ```bash
 npm install
 ```
 
-> **Note (Windows環境)**: PowerShellでスクリプトの実行ポリシー制限（`UnauthorizedAccess`）が出る場合は、`npm.cmd install` を使用するか、管理者権限のターミナルで `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` を実行してください。
+> **Note for Windows Users**: If you encounter an `UnauthorizedAccess` script execution policy restriction in PowerShell, use `npm.cmd install` or run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` in an administrative PowerShell terminal.
 
-#### 2. ローカルサーバー起動
-以下のコマンドで開発サーバーを起動します：
-
+#### 2. Start Local Development Server
 ```bash
 npm run dev
 ```
 
-起動後、ターミナルに表示されるURLをブラウザ（Chrome, Edge, Firefox等）で開きます：
+Once started, open the following URL in your web browser (Chrome, Edge, Firefox, etc.):
 ```
 http://localhost:3000/
 ```
 
-### 3. 本番用ビルド（静的ファイル生成）
-配布用・静的ホスティング用のビルドを行う場合：
+#### 3. Production Build (Static Bundle)
+To build a static production bundle:
 
 ```bash
 npm run build
 ```
-生成された `dist/` フォルダ内のファイルをローカルWebサーバー等に配置することで、単体でも動作します。
+The compiled static assets will be output to the `dist/` directory, ready to be served by any local web server.
 
 ---
 
-## 🎮 主な機能と操作ガイド
+## 🎮 User Guide & Features
 
-### 1. 視点操作（カメラ）
-- **回転（オービット）**: マウス左ボタンドラッグ
-- **平行移動（パン）**: マウス右ボタンドラッグ
-- **ズーム**: マウスホイール
-- **視点プリセット**: 「表示」タブ内の「上面」「前面」「右側面」「等角」「全体表示」ボタンで視点を一発切り替え
+### 1. Viewport & Camera Navigation
+- **Orbit / Rotate**: Click and drag with the **Left Mouse Button**
+- **Pan / Move**: Click and drag with the **Right Mouse Button**
+- **Zoom**: Scroll the **Mouse Wheel**
+- **Preset Views**: Switch camera angles instantly using the buttons in the "View" tab (Top, Front, Right, Isometric, Fit to View)
 
-### 2. オブジェクトの挿入
-「挿入」タブから以下の基本プリミティブをワンクリックで追加できます。  
-すべてのオブジェクトは**床面（Y=0）に底面がぴったり接地**して生成されます。
-- 立方体 (Cube)
-- 円柱 (Cylinder)
-- 球体 (Sphere)
-- 円錐 (Cone)
-- 角錐 (Pyramid)
-- トーラス (Torus / ドーナツ型)
-- 六角柱 (Hexagonal Prism)
-- くさび (Wedge)
+### 2. Adding Primitives (Insert Tab)
+Easily add 3D primitives with a single click. Every generated primitive is automatically **grounded to the build plate (`Y = 0`)**:
+- Cube / Box
+- Cylinder
+- Sphere
+- Cone
+- Pyramid (Square pyramid)
+- Torus (Donut)
+- Hexagonal Prism
+- Wedge
 
-### 3. トランスフォーム（変形・寸法変更）
-- **3Dギズモ**: 画面中央下のモードバーまたはショートカットキーで切り替え
-  - `W`: 移動モード
-  - `E`: 回転モード
-  - `R`: 拡大縮小モード
-- **寸法指定（右側インスペクター）**:
-  - 幅（W）、高さ（H）、奥行（D）をミリメートル（mm）単位で直接数値入力可能
-  - 「比率維持」チェックボックスで縦横比を固定したままスケーリング可能
-- **接地（Lay Flat）**:
-  - オブジェクトを回転させた後でも、クイックツールバーまたは「編集」タブの「接地」をクリックすると、最下部が床面にピタッと着地します。
+### 3. Transforms & Dimensions (Inspector Panel)
+- **3D Gizmo Modes**: Toggle via the floating toolbar at the bottom of the canvas or using hotkeys:
+  - `W`: Translate (Move)
+  - `E`: Rotate
+  - `R`: Scale
+- **Exact Dimensions (mm)**:
+  - Directly enter Width (W), Height (H), and Depth (D) in millimeters in the right-hand Inspector panel.
+  - Toggle the **Lock Aspect Ratio** checkbox to scale uniformly.
+- **Lay Flat (Settle)**:
+  - Click the **Lay Flat** button on the quick toolbar or Edit tab to immediately drop the rotated model onto the build plate floor (`Y = 0`).
 
-### 4. ブーリアン演算（結合・型抜き・交差）
-複数のオブジェクトを選択（`Shift` キーまたは `Ctrl` キーを押しながらクリック）した状態で、「編集」タブから実行します：
-- **結合 (Merge / Union)**: 複数のオブジェクトを融合し、内部ポリゴンをきれいに除去
-- **型抜き (Subtract)**: 最初に選択した基準オブジェクトから、重なっている部分をくり抜く
-- **交差 (Intersect)**: 重なり合っている体積部分だけを残す
+### 4. Boolean Operations (Edit Tab)
+Select two or more objects (hold `Shift` or `Ctrl` while clicking), then choose an operation:
+- **Union (Merge)**: Combines multiple shapes into a single watertight mesh, eliminating internal geometries.
+- **Subtract (Difference)**: Cuts the overlapping volume of tool objects out of the primary base object.
+- **Intersect**: Retains only the shared, intersecting volume between objects.
 
-### 5. 平面切断・スライス（Split）
-1. 切断したいオブジェクトを選択し、「編集」タブの「分割 (Split)」をクリック
-2. 画面上に半透明の切断平面が現れます
-3. スライダーで切断高さ（Y位置）や角度（チルト）を調整
-4. 「上側を残す」「下側を残す」「両方を保持」から選択して「切断を実行」をクリック
-5. 切り口は自動的にポリゴンでフタ（Cap）され、ソリッドな立体が維持されます
+### 5. Plane Slicing / Split (Edit Tab)
+1. Select the target mesh and click **Split** in the Edit tab.
+2. An interactive, semi-transparent cutting plane helper will appear.
+3. Adjust the **Height** and **Angle** sliders to position the cut.
+4. Select a mode: **Keep Top**, **Keep Bottom**, or **Keep Both**.
+5. Click **Apply Split**. The cut surface is automatically capped with clean polygon faces.
 
-### 6. ファイルの読み込み・保存
-- **開く（インポート）**: 「ファイル」タブの「開く」ボタン、または3Dビューポートへの直接**ドラッグ＆ドロップ**
-- **保存（エクスポート）**: 「ファイル」タブから「STL出力」「OBJ出力」「GLB出力」「PLY出力」を選択（3Dプリンタ用には「STL出力」が最適です）
+### 6. Painting & Materials (Paint Tab)
+- Real-time color picker and preset palette swatches.
+- Roughness and Metalness sliders for surface finish.
+- Wireframe toggle and X-Ray (translucent) preview modes.
 
-### 7. ショートカットキー一覧
-| キー | 操作 |
+### 7. File Import & Export (File Tab)
+- **Import**: Click "Open" or simply **drag and drop** files (.stl, .obj, .3mf, .glb, .ply) directly onto the 3D canvas.
+- **Export**: Export selected objects or the entire scene to `.stl` (binary format, ideal for 3D printing), `.obj`, `.glb`, or `.ply`.
+
+### 8. Keyboard Shortcuts
+| Key | Action |
 | :--- | :--- |
-| `W` | 移動ギズモ |
-| `E` | 回転ギズモ |
-| `R` | 拡大縮小ギズモ |
-| `Delete` / `Backspace` | 選択オブジェクトの削除 |
-| `Ctrl` + `D` | 選択オブジェクトの複製 |
-| `Ctrl` + `Z` | 元に戻す (Undo) |
-| `Ctrl` + `Y` (または `Ctrl`+`Shift`+`Z`) | やり直す (Redo) |
-| `Shift` + クリック | 複数選択 / 選択解除 |
+| `W` | Translate Gizmo (Move) |
+| `E` | Rotate Gizmo |
+| `R` | Scale Gizmo |
+| `Delete` / `Backspace` | Delete selected object(s) |
+| `Ctrl` + `D` | Duplicate selected object(s) |
+| `Ctrl` + `Z` | Undo |
+| `Ctrl` + `Y` (or `Ctrl`+`Shift`+`Z`) | Redo |
+| `Shift` + Click | Multi-select / Toggle selection |
 
 ---
 
-## 📁 ディレクトリ構成
+## 📁 Project Directory Structure
 
 ```
 maceman_3dbuilder/
-├── index.html              # メインエントリーポイント（Fluent Design UI構造）
-├── package.json            # 依存関係（Three.js, three-bvh-csg, Vite）
-├── vite.config.js          # Vite設定
-├── start.bat               # Windows用起動バッチファイル
-├── start.ps1               # Windows用PowerShell起動スクリプト
-├── start.sh                # macOS/Linux用起動シェルスクリプト
-├── README.md               # 本ドキュメント
+├── index.html              # Main HTML entry point (Fluent Design UI)
+├── package.json            # Node.js dependencies (Three.js, three-bvh-csg, Vite)
+├── vite.config.js          # Vite configuration
+├── start.bat               # Windows batch launcher (double-click to run)
+├── start.ps1               # Windows PowerShell launcher
+├── start.sh                # macOS/Linux shell launcher
+├── README.md               # English documentation
+├── README-jp.md            # Japanese documentation
 └── src/
-    ├── main.js             # アプリケーション全体の初期化とイベント制御
-    ├── style.css           # Fluent Designスタイルシート
+    ├── main.js             # Core app orchestration and UI event handlers
+    ├── style.css           # Fluent Design styling and tokens
     ├── core/
-    │   ├── Viewer.js       # Three.jsシーン、ビルドプレート、カメラ、ライティング
-    │   ├── SceneManager.js # オブジェクト管理、選択状態、3Dレイキャスト判定
-    │   └── History.js      # Undo / Redo履歴マネージャー
+    │   ├── Viewer.js       # Three.js scene, build plate, camera, lights
+    │   ├── SceneManager.js # Mesh management, selection state, raycasting
+    │   └── History.js      # Undo / Redo history stack
     ├── operations/
-    │   ├── Primitives.js   # 8種類の基本形状生成（床接地付き）
-    │   ├── BooleanOps.js   # three-bvh-csgによるCSGブーリアン演算
-    │   ├── SplitOps.js     # 平面切断・スライス処理
-    │   └── TransformOps.js # 接地(Lay Flat)、寸法変更、中央整列
+    │   ├── Primitives.js   # 8 primitive shapes generation with floor grounding
+    │   ├── BooleanOps.js   # three-bvh-csg Constructive Solid Geometry operations
+    │   ├── SplitOps.js     # Plane slicing and auto-capping
+    │   └── TransformOps.js # Lay Flat, millimeter dimensions, alignment
     ├── io/
-    │   ├── Importer.js     # STL, OBJ, 3MF, GLTF, PLYローカルインポート
-    │   └── Exporter.js     # STL, OBJ, GLB, PLYローカルエクスポート
+    │   ├── Importer.js     # STL, OBJ, 3MF, GLTF, PLY local file loaders
+    │   └── Exporter.js     # STL, OBJ, GLB, PLY file exporters
     └── ui/
-        └── Notification.js # トースト通知システム
+        └── Notification.js # Toast notifications
 ```
 
 ---
 
-## 📜 ライセンス
+## 📜 License
 MIT License

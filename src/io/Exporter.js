@@ -89,33 +89,71 @@ export class Exporter {
     let itemXmlParts = [];
     let objectIdCounter = 1;
 
+    // 同一座標の頂点を統合し、多様体（Manifold）トポロジーを構築するヘルパー
+    const weldVertices = (geometry, precision = 4) => {
+      const factor = Math.pow(10, precision);
+      const posAttr = geometry.attributes.position;
+      const oldIndices = geometry.index ? geometry.index : null;
+      const count = oldIndices ? oldIndices.count : posAttr.count;
+
+      const vertexMap = new Map();
+      const uniquePositions = [];
+      const newIndices = [];
+
+      for (let i = 0; i < count; i++) {
+        const idx = oldIndices ? oldIndices.getX(i) : i;
+        const x = posAttr.getX(idx);
+        const y = posAttr.getY(idx);
+        const z = posAttr.getZ(idx);
+
+        const rx = Math.round(x * factor) / factor;
+        const ry = Math.round(y * factor) / factor;
+        const rz = Math.round(z * factor) / factor;
+        const key = `${rx},${ry},${rz}`;
+
+        let newIdx = vertexMap.get(key);
+        if (newIdx === undefined) {
+          newIdx = uniquePositions.length;
+          vertexMap.set(key, newIdx);
+          uniquePositions.push({ x: rx, y: ry, z: rz });
+        }
+        newIndices.push(newIdx);
+      }
+
+      // 面積ゼロや同一頂点を持つ縮退三角形を除去
+      const cleanTriangles = [];
+      for (let i = 0; i < newIndices.length; i += 3) {
+        const a = newIndices[i];
+        const b = newIndices[i + 1];
+        const c = newIndices[i + 2];
+        if (a !== b && b !== c && c !== a) {
+          cleanTriangles.push(a, b, c);
+        }
+      }
+
+      return { vertices: uniquePositions, triangles: cleanTriangles };
+    };
+
     objects.forEach(mesh => {
       mesh.updateMatrixWorld(true);
       const geom = mesh.geometry.clone();
       geom.applyMatrix4(mesh.matrixWorld);
 
-      const posAttr = geom.attributes.position;
-      if (!posAttr) return;
+      if (!geom.attributes.position) return;
+
+      const { vertices, triangles } = weldVertices(geom, 4);
+      if (vertices.length === 0 || triangles.length === 0) return;
 
       const objId = objectIdCounter++;
       let verticesXml = '';
-      for (let i = 0; i < posAttr.count; i++) {
-        const x = posAttr.getX(i).toFixed(4);
-        const y = posAttr.getY(i).toFixed(4);
-        const z = posAttr.getZ(i).toFixed(4);
-        verticesXml += `          <vertex x="${x}" y="${y}" z="${z}" />\n`;
+      for (let i = 0; i < vertices.length; i++) {
+        const v = vertices[i];
+        verticesXml += `          <vertex x="${v.x.toFixed(4)}" y="${v.y.toFixed(4)}" z="${v.z.toFixed(4)}" />\n`;
       }
 
       let trianglesXml = '';
-      if (geom.index) {
-        const indexAttr = geom.index;
-        for (let i = 0; i < indexAttr.count; i += 3) {
-          trianglesXml += `          <triangle v1="${indexAttr.getX(i)}" v2="${indexAttr.getX(i + 1)}" v3="${indexAttr.getX(i + 2)}" />\n`;
-        }
-      } else {
-        for (let i = 0; i < posAttr.count; i += 3) {
-          trianglesXml += `          <triangle v1="${i}" v2="${i + 1}" v3="${i + 2}" />\n`;
-        }
+      for (let i = 0; i < triangles.length; i += 3) {
+        trianglesXml += `          <triangle v1="${triangles[i]}" v2="${triangles[i + 1]}" v3="${triangles[i + 2]}" />\n`;
       }
 
       const objName = mesh.name ? mesh.name.replace(/[<>&"]/g, '') : `Part_${objId}`;

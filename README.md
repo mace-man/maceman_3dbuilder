@@ -20,7 +20,7 @@ It runs **100% locally** in your browser without any external network communicat
   - **Align**: Center and align multiple objects along the X / Z axes
 - **Comprehensive 3D Format Support**:
   - **Import (File Picker & Drag-and-Drop)**: STL (Binary & ASCII), OBJ, 3MF, GLTF/GLB, PLY
-  - **Export**: STL (Binary for 3D printing), OBJ, GLB, PLY
+  - **Export**: STL (Binary for 3D printing), 3MF, OBJ, GLB, PLY
 
 ---
 
@@ -128,7 +128,7 @@ Select two or more objects (hold `Shift` or `Ctrl` while clicking), then choose 
 
 ### 7. File Import & Export (File Tab)
 - **Import**: Click "Open" or simply **drag and drop** files (.stl, .obj, .3mf, .glb, .ply) directly onto the 3D canvas.
-- **Export**: Export selected objects or the entire scene to `.stl` (binary format, ideal for 3D printing), `.obj`, `.glb`, or `.ply`.
+- **Export**: Export selected objects or the entire scene to `.stl` (binary format, ideal for 3D printing), `.3mf` (modern 3D manufacturing format), `.obj`, `.glb`, or `.ply`.
 
 ### 8. Keyboard Shortcuts
 | Key | Action |

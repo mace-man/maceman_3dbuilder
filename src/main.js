@@ -248,6 +248,7 @@ class App {
     });
 
     document.getElementById('btn-export-stl').addEventListener('click', () => this.exportModel('stl'));
+    document.getElementById('btn-export-3mf').addEventListener('click', () => this.exportModel('3mf'));
     document.getElementById('btn-export-obj').addEventListener('click', () => this.exportModel('obj'));
     document.getElementById('btn-export-glb').addEventListener('click', () => this.exportModel('glb'));
     document.getElementById('btn-export-ply').addEventListener('click', () => this.exportModel('ply'));
@@ -448,6 +449,9 @@ class App {
     switch (format) {
       case 'stl':
         Exporter.exportSTL(targets, `${defaultName}.stl`, true);
+        break;
+      case '3mf':
+        Exporter.export3MF(targets, `${defaultName}.3mf`);
         break;
       case 'obj':
         Exporter.exportOBJ(targets, `${defaultName}.obj`);

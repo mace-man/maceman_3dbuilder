@@ -17,26 +17,35 @@
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
           </svg>
-          <span>mace-man 3D Builder</span>
-          <span class="badge-offline">オフライン完結</span>
+          <span data-i18n="appName">mace-man 3D Builder</span>
+          <span class="badge-offline" data-i18n="offlineBadge">オフライン完結</span>
         </div>
         
         <div class="quick-actions">
-          <button id="btn-quick-undo" class="icon-btn-mini" title="元に戻す (Ctrl+Z)">
+          <div class="lang-select-box" title="Language / 言語">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <select id="lang-select">
+              <option value="ja">日本語 (JA)</option>
+              <option value="en">English (EN)</option>
+            </select>
+          </div>
+          <div style="width:1px; height:18px; background:var(--border-subtle); margin:0 2px;"></div>
+
+          <button id="btn-quick-undo" class="icon-btn-mini" data-i18n-title="undoTitle" title="元に戻す (Ctrl+Z)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
           </button>
-          <button id="btn-quick-redo" class="icon-btn-mini" title="やり直す (Ctrl+Y)">
+          <button id="btn-quick-redo" class="icon-btn-mini" data-i18n-title="redoTitle" title="やり直す (Ctrl+Y)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/></svg>
           </button>
           <div style="width:1px; height:18px; background:var(--border-subtle); margin:0 4px;"></div>
-          <button id="btn-quick-layflat" class="tool-btn" style="height:32px; min-width:auto; flex-direction:row; padding:0 8px; font-size:12px;" title="接地 (床面 Y=0 に落とす)">
+          <button id="btn-quick-layflat" class="tool-btn" style="height:32px; min-width:auto; flex-direction:row; padding:0 8px; font-size:12px;" data-i18n-title="layFlatTitle" title="接地 (床面 Y=0 に落とす)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v14M5 10l7 7 7-7M3 21h18"/></svg>
-            <span>接地</span>
+            <span data-i18n="layFlat">接地</span>
           </button>
-          <button id="btn-quick-duplicate" class="icon-btn-mini" title="複製 (Ctrl+D)">
+          <button id="btn-quick-duplicate" class="icon-btn-mini" data-i18n-title="duplicateTitle" title="複製 (Ctrl+D)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </button>
-          <button id="btn-quick-delete" class="icon-btn-mini" title="削除 (Delete)">
+          <button id="btn-quick-delete" class="icon-btn-mini" data-i18n-title="deleteTitle" title="削除 (Delete)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           </button>
         </div>
@@ -44,11 +53,11 @@
 
       <!-- Ribbon Tabs -->
       <nav class="ribbon-tabs">
-        <button class="ribbon-tab active" data-tab="tab-insert">挿入 (Insert)</button>
-        <button class="ribbon-tab" data-tab="tab-edit">編集 (Edit)</button>
-        <button class="ribbon-tab" data-tab="tab-paint">ペイント (Paint)</button>
-        <button class="ribbon-tab" data-tab="tab-view">表示 (View)</button>
-        <button class="ribbon-tab" data-tab="tab-file">ファイル (File)</button>
+        <button class="ribbon-tab active" data-tab="tab-insert" data-i18n="tabInsert">挿入 (Insert)</button>
+        <button class="ribbon-tab" data-tab="tab-edit" data-i18n="tabEdit">編集 (Edit)</button>
+        <button class="ribbon-tab" data-tab="tab-paint" data-i18n="tabPaint">ペイント (Paint)</button>
+        <button class="ribbon-tab" data-tab="tab-view" data-i18n="tabView">表示 (View)</button>
+        <button class="ribbon-tab" data-tab="tab-file" data-i18n="tabFile">ファイル (File)</button>
       </nav>
 
       <!-- Ribbon Content Panels -->
@@ -56,37 +65,37 @@
         <!-- 挿入タブ -->
         <div id="tab-insert" class="ribbon-panel active-panel" style="display: flex; gap: 16px;">
           <div class="tool-group">
-            <button id="add-cube" class="tool-btn" title="立方体を追加">
+            <button id="add-cube" class="tool-btn" data-i18n-title="cubeTitle" title="立方体を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-              <span>立方体</span>
+              <span data-i18n="cube">立方体</span>
             </button>
-            <button id="add-cylinder" class="tool-btn" title="円柱を追加">
+            <button id="add-cylinder" class="tool-btn" data-i18n-title="cylinderTitle" title="円柱を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/></svg>
-              <span>円柱</span>
+              <span data-i18n="cylinder">円柱</span>
             </button>
-            <button id="add-sphere" class="tool-btn" title="球体を追加">
+            <button id="add-sphere" class="tool-btn" data-i18n-title="sphereTitle" title="球体を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/></svg>
-              <span>球体</span>
+              <span data-i18n="sphere">球体</span>
             </button>
-            <button id="add-cone" class="tool-btn" title="円錐を追加">
+            <button id="add-cone" class="tool-btn" data-i18n-title="coneTitle" title="円錐を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 18a9 4 0 01-18 0l9-18z"/></svg>
-              <span>円錐</span>
+              <span data-i18n="cone">円錐</span>
             </button>
-            <button id="add-pyramid" class="tool-btn" title="角錐を追加">
+            <button id="add-pyramid" class="tool-btn" data-i18n-title="pyramidTitle" title="角錐を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 20h20L12 2z"/></svg>
-              <span>角錐</span>
+              <span data-i18n="pyramid">角錐</span>
             </button>
-            <button id="add-torus" class="tool-btn" title="トーラスを追加">
+            <button id="add-torus" class="tool-btn" data-i18n-title="torusTitle" title="トーラスを追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="10" ry="6"/><ellipse cx="12" cy="12" rx="4" ry="2.5"/></svg>
-              <span>トーラス</span>
+              <span data-i18n="torus">トーラス</span>
             </button>
-            <button id="add-hexagon" class="tool-btn" title="六角柱を追加">
+            <button id="add-hexagon" class="tool-btn" data-i18n-title="hexagonTitle" title="六角柱を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4.5v11L12 22l-8-4.5v-11z"/></svg>
-              <span>六角柱</span>
+              <span data-i18n="hexagon">六角柱</span>
             </button>
-            <button id="add-wedge" class="tool-btn" title="くさび型を追加">
+            <button id="add-wedge" class="tool-btn" data-i18n-title="wedgeTitle" title="くさび型を追加">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16V4L4 20z"/></svg>
-              <span>くさび</span>
+              <span data-i18n="wedge">くさび</span>
             </button>
           </div>
         </div>
@@ -95,37 +104,37 @@
         <div id="tab-edit" class="ribbon-panel" style="display: none; gap: 16px;">
           <!-- ブーリアン演算グループ -->
           <div class="tool-group">
-            <button id="btn-union" class="tool-btn" title="結合 (複数メッシュを1つに融合)">
+            <button id="btn-union" class="tool-btn" data-i18n-title="unionTitle" title="結合 (複数メッシュを1つに融合)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
-              <span>結合</span>
+              <span data-i18n="union">結合</span>
             </button>
-            <button id="btn-subtract" class="tool-btn" title="型抜き (選択モデルから他を削る)">
+            <button id="btn-subtract" class="tool-btn" data-i18n-title="subtractTitle" title="型抜き (選択モデルから他を削る)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6a6 6 0 100 12 6 6 0 000-12z"/><path d="M9 18a6 6 0 010-12"/></svg>
-              <span>型抜き</span>
+              <span data-i18n="subtract">型抜き</span>
             </button>
-            <button id="btn-intersect" class="tool-btn" title="交差 (重なり合った部分だけを残す)">
+            <button id="btn-intersect" class="tool-btn" data-i18n-title="intersectTitle" title="交差 (重なり合った部分だけを残す)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="12" r="6" stroke-dasharray="2 2"/><circle cx="15" cy="12" r="6" stroke-dasharray="2 2"/><path d="M12 7.7a6 6 0 010 8.6 6 6 0 010-8.6z" fill="currentColor" opacity="0.5"/></svg>
-              <span>交差</span>
+              <span data-i18n="intersect">交差</span>
             </button>
           </div>
 
           <!-- 分割グループ -->
           <div class="tool-group">
-            <button id="btn-start-split" class="tool-btn" title="平面でモデルを切断・スライス">
+            <button id="btn-start-split" class="tool-btn" data-i18n-title="splitTitle" title="平面でモデルを切断・スライス">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16M2 7l20 10"/></svg>
-              <span>分割 (Split)</span>
+              <span data-i18n="split">分割 (Split)</span>
             </button>
           </div>
 
           <!-- 配置・整列グループ -->
           <div class="tool-group">
-            <button id="btn-layflat" class="tool-btn" title="底面を床面に接地">
+            <button id="btn-layflat" class="tool-btn" data-i18n-title="layFlatTitle" title="底面を床面に接地">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v14M5 10l7 7 7-7M3 21h18"/></svg>
-              <span>接地</span>
+              <span data-i18n="layFlat">接地</span>
             </button>
-            <button id="btn-align-center" class="tool-btn" title="選択オブジェクトを中央揃え">
+            <button id="btn-align-center" class="tool-btn" data-i18n-title="alignCenterTitle" title="選択オブジェクトを中央揃え">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M4 8h16M6 16h12"/></svg>
-              <span>整列</span>
+              <span data-i18n="alignCenter">整列</span>
             </button>
           </div>
         </div>
@@ -134,9 +143,9 @@
         <div id="tab-paint" class="ribbon-panel" style="display: none; gap: 16px;">
           <div class="tool-group">
             <div style="display:flex; flex-direction:column; gap:6px;">
-              <span style="font-size:10px; color:var(--text-secondary);">カラー選択</span>
+              <span style="font-size:10px; color:var(--text-secondary);" data-i18n="colorSelect">カラー選択</span>
               <div class="color-picker-row">
-                <div class="color-circle" title="カラーピッカー">
+                <div class="color-circle" data-i18n-title="colorPickerTitle" title="カラーピッカー">
                   <input type="color" id="paint-color" value="#0078d4">
                 </div>
                 <div class="palette-presets">
@@ -153,13 +162,13 @@
             </div>
           </div>
           <div class="tool-group">
-            <button id="btn-toggle-wireframe" class="tool-btn" title="ワイヤーフレーム表示切替">
+            <button id="btn-toggle-wireframe" class="tool-btn" data-i18n-title="wireframeTitle" title="ワイヤーフレーム表示切替">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polygon points="2 17 12 22 22 17 12 12 2 17"/></svg>
-              <span>ワイヤー</span>
+              <span data-i18n="wireframe">ワイヤー</span>
             </button>
-            <button id="btn-toggle-xray" class="tool-btn" title="半透明 X線モード">
+            <button id="btn-toggle-xray" class="tool-btn" data-i18n-title="xrayTitle" title="半透明 X線モード">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>X線 (透明)</span>
+              <span data-i18n="xray">X線 (透明)</span>
             </button>
           </div>
         </div>
@@ -167,38 +176,38 @@
         <!-- 表示タブ -->
         <div id="tab-view" class="ribbon-panel" style="display: none; gap: 16px;">
           <div class="tool-group">
-            <button id="view-top" class="tool-btn"><span>上面</span></button>
-            <button id="view-front" class="tool-btn"><span>前面</span></button>
-            <button id="view-right" class="tool-btn"><span>右側面</span></button>
-            <button id="view-iso" class="tool-btn"><span>等角 (斜め)</span></button>
-            <button id="view-fit" class="tool-btn"><span>全体表示</span></button>
+            <button id="view-top" class="tool-btn"><span data-i18n="viewTop">上面</span></button>
+            <button id="view-front" class="tool-btn"><span data-i18n="viewFront">前面</span></button>
+            <button id="view-right" class="tool-btn"><span data-i18n="viewRight">右側面</span></button>
+            <button id="view-iso" class="tool-btn"><span data-i18n="viewIso">等角 (斜め)</span></button>
+            <button id="view-fit" class="tool-btn"><span data-i18n="viewFit">全体表示</span></button>
           </div>
           <div class="tool-group">
-            <button id="btn-toggle-grid" class="tool-btn active"><span>グリッド床</span></button>
+            <button id="btn-toggle-grid" class="tool-btn active"><span data-i18n="gridBed">グリッド床</span></button>
           </div>
         </div>
 
         <!-- ファイルタブ -->
         <div id="tab-file" class="ribbon-panel" style="display: none; gap: 16px;">
           <div class="tool-group">
-            <button id="btn-new-scene" class="tool-btn" title="シーンをクリアして新規作成">
+            <button id="btn-new-scene" class="tool-btn" data-i18n-title="fileNewTitle" title="シーンをクリアして新規作成">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span>新規</span>
+              <span data-i18n="fileNew">新規</span>
             </button>
-            <button id="btn-import-file" class="tool-btn" title="STL, OBJ, 3MF, GLB, PLYを読込">
+            <button id="btn-import-file" class="tool-btn" data-i18n-title="fileOpenTitle" title="STL, OBJ, 3MF, GLB, PLYを読込">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>開く (読込)</span>
+              <span data-i18n="fileOpen">開く (読込)</span>
             </button>
             <input type="file" id="file-input" style="display: none;" accept=".stl,.obj,.3mf,.gltf,.glb,.ply">
           </div>
           <div class="tool-group">
-            <button id="btn-export-stl" class="tool-btn" title="3Dプリンタ用STLファイルを出力">
+            <button id="btn-export-stl" class="tool-btn" data-i18n-title="exportStlTitle" title="3Dプリンタ用STLファイルを出力">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span>STL出力</span>
+              <span data-i18n="exportStl">STL出力</span>
             </button>
-            <button id="btn-export-obj" class="tool-btn"><span>OBJ出力</span></button>
-            <button id="btn-export-glb" class="tool-btn"><span>GLB出力</span></button>
-            <button id="btn-export-ply" class="tool-btn"><span>PLY出力</span></button>
+            <button id="btn-export-obj" class="tool-btn"><span data-i18n="exportObj">OBJ出力</span></button>
+            <button id="btn-export-glb" class="tool-btn"><span data-i18n="exportGlb">GLB出力</span></button>
+            <button id="btn-export-ply" class="tool-btn"><span data-i18n="exportPly">PLY出力</span></button>
           </div>
         </div>
       </div>
@@ -209,7 +218,7 @@
       <!-- Left: Outliner (Item List) -->
       <aside class="outliner-panel">
         <div class="panel-header">
-          <span>アイテム一覧</span>
+          <span data-i18n="outlinerTitle">アイテム一覧</span>
           <span id="item-count" style="font-size:11px; opacity:0.7;">(0)</span>
         </div>
         <div id="item-list" class="item-list">
@@ -221,49 +230,49 @@
       <section class="viewport-container" id="viewport">
         <!-- Floating Transform Bar -->
         <div class="floating-transform-bar">
-          <button id="btn-mode-translate" class="floating-btn active" title="移動 (W)">
+          <button id="btn-mode-translate" class="floating-btn active" data-i18n-title="modeTranslateTitle" title="移動 (W)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
-            <span>移動</span>
+            <span data-i18n="modeTranslate">移動</span>
           </button>
-          <button id="btn-mode-rotate" class="floating-btn" title="回転 (E)">
+          <button id="btn-mode-rotate" class="floating-btn" data-i18n-title="modeRotateTitle" title="回転 (E)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg>
-            <span>回転</span>
+            <span data-i18n="modeRotate">回転</span>
           </button>
-          <button id="btn-mode-scale" class="floating-btn" title="拡大縮小 (R)">
+          <button id="btn-mode-scale" class="floating-btn" data-i18n-title="modeScaleTitle" title="拡大縮小 (R)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            <span>拡縮</span>
+            <span data-i18n="modeScale">拡縮</span>
           </button>
         </div>
 
         <!-- Split / Slice Floating Controls (スライス中のみ表示) -->
         <div id="split-controls" class="split-overlay hidden">
-          <span style="font-weight:600; font-size:13px; color:var(--text-primary);">✂️ 平面分割モード</span>
+          <span style="font-weight:600; font-size:13px; color:var(--text-primary);" data-i18n="splitTitleHeader">✂️ 平面分割モード</span>
           <div style="display:flex; gap:6px;">
-            <button id="btn-split-mode-top" class="split-btn">上側を残す</button>
-            <button id="btn-split-mode-bottom" class="split-btn">下側を残す</button>
-            <button id="btn-split-mode-both" class="split-btn active">両方を保持</button>
+            <button id="btn-split-mode-top" class="split-btn" data-i18n="splitKeepTop">上側を残す</button>
+            <button id="btn-split-mode-bottom" class="split-btn" data-i18n="splitKeepBottom">下側を残す</button>
+            <button id="btn-split-mode-both" class="split-btn active" data-i18n="splitKeepBoth">両方を保持</button>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <label style="font-size:11px;">高さ:</label>
+            <label style="font-size:11px;" data-i18n="splitHeight">高さ:</label>
             <input type="range" id="split-height-slider" min="0" max="100" value="15" style="width:90px;">
-            <label style="font-size:11px;">角度:</label>
+            <label style="font-size:11px;" data-i18n="splitAngle">角度:</label>
             <input type="range" id="split-angle-slider" min="-90" max="90" value="0" style="width:90px;">
           </div>
-          <button id="btn-split-apply" class="btn-primary" style="padding:4px 10px;">切断を実行</button>
-          <button id="btn-split-cancel" class="btn-secondary" style="padding:4px 10px;">キャンセル</button>
+          <button id="btn-split-apply" class="btn-primary" style="padding:4px 10px;" data-i18n="splitApply">切断を実行</button>
+          <button id="btn-split-cancel" class="btn-secondary" style="padding:4px 10px;" data-i18n="splitCancel">キャンセル</button>
         </div>
       </section>
 
       <!-- Right: Inspector (Properties) -->
       <aside class="inspector-panel" id="inspector">
         <div class="panel-header">
-          <span>プロパティ</span>
+          <span data-i18n="inspectorTitle">プロパティ</span>
         </div>
 
         <div id="inspector-content">
           <!-- 選択時のみプロパティ入力欄を表示 -->
           <div class="inspector-section">
-            <div class="section-title">オブジェクト名</div>
+            <div class="section-title" data-i18n="propName">オブジェクト名</div>
             <div class="input-box" style="margin-bottom:8px;">
               <input type="text" id="prop-name" value="">
             </div>
@@ -271,66 +280,66 @@
 
           <div class="inspector-section">
             <div class="section-title">
-              <span>寸法 (mm)</span>
+              <span data-i18n="dimensions">寸法 (mm)</span>
               <label style="font-size:10px; font-weight:normal; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                <input type="checkbox" id="lock-aspect" checked> 比率維持
+                <input type="checkbox" id="lock-aspect" checked> <span data-i18n="lockAspect">比率維持</span>
               </label>
             </div>
             <div class="property-group">
               <div class="input-triple">
-                <div class="input-box" title="幅 (X)"><span>W</span><input type="number" id="dim-x" step="0.5"></div>
-                <div class="input-box" title="高さ (Y)"><span>H</span><input type="number" id="dim-y" step="0.5"></div>
-                <div class="input-box" title="奥行 (Z)"><span>D</span><input type="number" id="dim-z" step="0.5"></div>
+                <div class="input-box" data-i18n-title="dimW" title="幅 (X)"><span>W</span><input type="number" id="dim-x" step="0.5"></div>
+                <div class="input-box" data-i18n-title="dimH" title="高さ (Y)"><span>H</span><input type="number" id="dim-y" step="0.5"></div>
+                <div class="input-box" data-i18n-title="dimD" title="奥行 (Z)"><span>D</span><input type="number" id="dim-z" step="0.5"></div>
               </div>
             </div>
           </div>
 
           <div class="inspector-section">
-            <div class="section-title">位置 (mm)</div>
+            <div class="section-title" data-i18n="position">位置 (mm)</div>
             <div class="property-group">
               <div class="input-triple">
-                <div class="input-box" title="X位置"><span>X</span><input type="number" id="pos-x" step="1"></div>
-                <div class="input-box" title="Y位置"><span>Y</span><input type="number" id="pos-y" step="1"></div>
-                <div class="input-box" title="Z位置"><span>Z</span><input type="number" id="pos-z" step="1"></div>
+                <div class="input-box" data-i18n-title="posX" title="X位置"><span>X</span><input type="number" id="pos-x" step="1"></div>
+                <div class="input-box" data-i18n-title="posY" title="Y位置"><span>Y</span><input type="number" id="pos-y" step="1"></div>
+                <div class="input-box" data-i18n-title="posZ" title="Z位置"><span>Z</span><input type="number" id="pos-z" step="1"></div>
               </div>
             </div>
           </div>
 
           <div class="inspector-section">
-            <div class="section-title">回転 (度)</div>
+            <div class="section-title" data-i18n="rotation">回転 (度)</div>
             <div class="property-group">
               <div class="input-triple">
-                <div class="input-box" title="X軸回転"><span>X</span><input type="number" id="rot-x" step="5"></div>
-                <div class="input-box" title="Y軸回転"><span>Y</span><input type="number" id="rot-y" step="5"></div>
-                <div class="input-box" title="Z軸回転"><span>Z</span><input type="number" id="rot-z" step="5"></div>
+                <div class="input-box" data-i18n-title="rotX" title="X軸回転"><span>X</span><input type="number" id="rot-x" step="5"></div>
+                <div class="input-box" data-i18n-title="rotY" title="Y軸回転"><span>Y</span><input type="number" id="rot-y" step="5"></div>
+                <div class="input-box" data-i18n-title="rotZ" title="Z軸回転"><span>Z</span><input type="number" id="rot-z" step="5"></div>
               </div>
             </div>
           </div>
 
           <div class="inspector-section">
-            <div class="section-title">マテリアル</div>
+            <div class="section-title" data-i18n="material">マテリアル</div>
             <div class="property-group">
               <div class="property-row">
-                <span class="prop-label">粗さ</span>
+                <span class="prop-label" data-i18n="roughness">粗さ</span>
                 <input type="range" id="mat-roughness" min="0" max="1" step="0.05" value="0.35" style="flex:1;">
               </div>
               <div class="property-row">
-                <span class="prop-label">金属感</span>
+                <span class="prop-label" data-i18n="metalness">金属感</span>
                 <input type="range" id="mat-metalness" min="0" max="1" step="0.05" value="0.1" style="flex:1;">
               </div>
             </div>
           </div>
 
           <div class="inspector-section">
-            <div class="section-title">メッシュ情報</div>
+            <div class="section-title" data-i18n="meshInfo">メッシュ情報</div>
             <div style="font-size:11px; color:var(--text-secondary); line-height:1.6;">
-              <div>頂点数: <span id="mesh-vertices" style="color:var(--text-primary);">-</span></div>
-              <div>ポリゴン面数: <span id="mesh-triangles" style="color:var(--text-primary);">-</span></div>
+              <div><span data-i18n="vertices">頂点数:</span> <span id="mesh-vertices" style="color:var(--text-primary);">-</span></div>
+              <div><span data-i18n="triangles">ポリゴン面数:</span> <span id="mesh-triangles" style="color:var(--text-primary);">-</span></div>
             </div>
           </div>
         </div>
 
-        <div id="inspector-empty" style="padding:24px 16px; text-align:center; color:var(--text-muted); font-size:12px;">
+        <div id="inspector-empty" style="padding:24px 16px; text-align:center; color:var(--text-muted); font-size:12px;" data-i18n="selectPrompt">
           オブジェクトを選択するとプロパティが表示されます
         </div>
       </aside>
@@ -339,12 +348,12 @@
     <!-- Bottom Status Bar -->
     <footer class="status-bar">
       <div class="status-left">
-        <span id="status-selection">未選択</span>
+        <span id="status-selection" data-i18n="noSelection">未選択</span>
         <span id="status-stats">総ポリゴン: 0</span>
       </div>
       <div class="status-right">
-        <span>ビルドプレート: 200 × 200 mm</span>
-        <span style="opacity:0.6;">ドラッグで視点移動 / 右ドラッグでパン / ホイールでズーム</span>
+        <span data-i18n="buildPlateSize">ビルドプレート: 200 × 200 mm</span>
+        <span style="opacity:0.6;" data-i18n="controlHint">ドラッグで視点移動 / 右ドラッグでパン / ホイールでズーム</span>
       </div>
     </footer>
   </div>

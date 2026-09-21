@@ -9,9 +9,26 @@ import { TransformOps } from './operations/TransformOps.js';
 import { Importer } from './io/Importer.js';
 import { Exporter } from './io/Exporter.js';
 import { Notification } from './ui/Notification.js';
+import { I18n } from './ui/I18n.js';
 
 class App {
   constructor() {
+    // 言語設定初期化
+    I18n.applyTranslations();
+    const langSelect = document.getElementById('lang-select');
+    if (langSelect) {
+      langSelect.value = I18n.currentLang;
+      langSelect.addEventListener('change', (e) => {
+        I18n.setLanguage(e.target.value);
+      });
+    }
+
+    I18n.onChange(() => {
+      this.updateOutliner();
+      this.updateInspector();
+      this.updateStatusBar();
+    });
+
     const container = document.getElementById('viewport');
     this.viewer = new Viewer(container);
     this.sm = new SceneManager(this.viewer);
@@ -27,12 +44,12 @@ class App {
     this.bindEvents();
     this.setupDropZone();
 
-    // 初期サンプルオブジェクトを追加（3D Builder起動時のようなフレンドリーな初期状態）
+    // 初期サンプルオブジェクトを追加
     const initialCube = Primitives.createCube(30, 30, 30, 0x0078d4);
     this.sm.addObject(initialCube);
     this.history.captureSnapshot();
 
-    Notification.success('mace-man 3D Builderが準備完了しました');
+    Notification.success(I18n.t('readyToast'));
   }
 
   bindEvents() {
@@ -85,24 +102,27 @@ class App {
     });
 
     // 3. 挿入（プリミティブ）
-    const addPrimitive = (creator) => {
+    const addPrimitive = (creator, defaultKey) => {
       this.history.captureSnapshot();
       const mesh = creator();
-      // 少しランダムにずらして重なりを防ぐ
+      // 言語に応じた名称設定
+      if (defaultKey) {
+        mesh.name = I18n.t(defaultKey);
+      }
       mesh.position.x = (Math.random() - 0.5) * 20;
       mesh.position.z = (Math.random() - 0.5) * 20;
       this.sm.addObject(mesh);
-      Notification.info(`${mesh.name} を追加しました`);
+      Notification.info(I18n.t('addSuccess', mesh.name));
     };
 
-    document.getElementById('add-cube').addEventListener('click', () => addPrimitive(() => Primitives.createCube()));
-    document.getElementById('add-cylinder').addEventListener('click', () => addPrimitive(() => Primitives.createCylinder()));
-    document.getElementById('add-sphere').addEventListener('click', () => addPrimitive(() => Primitives.createSphere()));
-    document.getElementById('add-cone').addEventListener('click', () => addPrimitive(() => Primitives.createCone()));
-    document.getElementById('add-pyramid').addEventListener('click', () => addPrimitive(() => Primitives.createPyramid()));
-    document.getElementById('add-torus').addEventListener('click', () => addPrimitive(() => Primitives.createTorus()));
-    document.getElementById('add-hexagon').addEventListener('click', () => addPrimitive(() => Primitives.createHexagon()));
-    document.getElementById('add-wedge').addEventListener('click', () => addPrimitive(() => Primitives.createWedge()));
+    document.getElementById('add-cube').addEventListener('click', () => addPrimitive(() => Primitives.createCube(), 'cube'));
+    document.getElementById('add-cylinder').addEventListener('click', () => addPrimitive(() => Primitives.createCylinder(), 'cylinder'));
+    document.getElementById('add-sphere').addEventListener('click', () => addPrimitive(() => Primitives.createSphere(), 'sphere'));
+    document.getElementById('add-cone').addEventListener('click', () => addPrimitive(() => Primitives.createCone(), 'cone'));
+    document.getElementById('add-pyramid').addEventListener('click', () => addPrimitive(() => Primitives.createPyramid(), 'pyramid'));
+    document.getElementById('add-torus').addEventListener('click', () => addPrimitive(() => Primitives.createTorus(), 'torus'));
+    document.getElementById('add-hexagon').addEventListener('click', () => addPrimitive(() => Primitives.createHexagon(), 'hexagon'));
+    document.getElementById('add-wedge').addEventListener('click', () => addPrimitive(() => Primitives.createWedge(), 'wedge'));
 
     // 4. トランスフォームモード切り替え
     const modeBtns = {
@@ -128,9 +148,9 @@ class App {
         TransformOps.align(this.sm.selectedObjects, 'x', 'center');
         TransformOps.align(this.sm.selectedObjects, 'z', 'center');
         this.sm.emit('transformChanged', this.sm.selectedObjects);
-        Notification.success('中央に整列しました');
+        Notification.success(I18n.t('alignSuccess'));
       } else {
-        Notification.warning('整列するには2つ以上のオブジェクトを選択してください');
+        Notification.warning(I18n.t('alignWarning'));
       }
     });
 
@@ -210,11 +230,11 @@ class App {
 
     // 9. ファイル入出力
     document.getElementById('btn-new-scene').addEventListener('click', () => {
-      if (confirm('現在のモデルをすべてクリアして新規作成しますか？')) {
+      if (confirm(I18n.t('newSceneConfirm'))) {
         this.history.captureSnapshot();
         const toRemove = [...this.sm.objects];
         toRemove.forEach(m => this.sm.removeObject(m));
-        Notification.info('新規シーンを作成しました');
+        Notification.info(I18n.t('newSceneToast'));
       }
     });
 
@@ -266,7 +286,7 @@ class App {
 
   applyLayFlat() {
     if (this.sm.selectedObjects.length === 0) {
-      Notification.warning('接地するオブジェクトを選択してください');
+      Notification.warning(I18n.t('splitPrompt'));
       return;
     }
     this.history.captureSnapshot();
@@ -274,14 +294,14 @@ class App {
       TransformOps.layFlat(mesh);
     });
     this.sm.emit('transformChanged', this.sm.selectedObjects);
-    Notification.success('床面(Y=0)に接地しました');
+    Notification.success(I18n.t('groundSuccess'));
   }
 
   // ブーリアン演算
   applyBoolean(opType) {
     const selected = this.sm.selectedObjects;
     if (selected.length < 2) {
-      Notification.warning('ブーリアン演算には2つ以上のオブジェクトを選択してください');
+      Notification.warning(I18n.t('booleanWarning'));
       return;
     }
 
@@ -302,17 +322,18 @@ class App {
       // 既存メッシュを削除して結果を追加
       selected.forEach(m => this.sm.removeObject(m));
       this.sm.addObject(resultMesh);
-      Notification.success(`${opType === 'union' ? '結合' : opType === 'subtract' ? '型抜き' : '交差'}が完了しました`);
+      const opName = opType === 'union' ? I18n.t('booleanUnion') : opType === 'subtract' ? I18n.t('booleanSubtract') : I18n.t('booleanIntersect');
+      Notification.success(I18n.t('booleanSuccess', opName));
     } catch (err) {
       console.error(err);
-      Notification.error('演算処理中にエラーが発生しました');
+      Notification.error(I18n.t('booleanError'));
     }
   }
 
   // スライス（分割）開始
   startSplit() {
     if (this.sm.selectedObjects.length === 0) {
-      Notification.warning('切断するオブジェクトを選択してください');
+      Notification.warning(I18n.t('splitPrompt'));
       return;
     }
 
@@ -328,7 +349,7 @@ class App {
 
     this.sliceHelper.visible = true;
     this.updateSlicePlane();
-    Notification.info('切断平面の位置・角度を調整し、「切断を実行」をクリックしてください');
+    Notification.info(I18n.t('splitHint'));
   }
 
   updateSlicePlane() {
@@ -360,10 +381,10 @@ class App {
       this.sm.removeObject(this.sliceTarget);
       newMeshes.forEach(m => this.sm.addObject(m));
 
-      Notification.success('モデルの切断が完了しました');
+      Notification.success(I18n.t('splitSuccess'));
     } catch (err) {
       console.error(err);
-      Notification.error('切断処理に失敗しました');
+      Notification.error(I18n.t('splitError'));
     } finally {
       this.cancelSplit();
     }
@@ -383,10 +404,10 @@ class App {
       const meshes = await Importer.loadFile(file);
       meshes.forEach(m => this.sm.addObject(m));
       this.viewer.fitToView(this.sm.objects);
-      Notification.success(`${file.name} を読み込みました`);
+      Notification.success(I18n.t('loadFileSuccess', file.name));
     } catch (err) {
       console.error(err);
-      Notification.error(`ファイルの読み込みに失敗しました: ${err.message}`);
+      Notification.error(I18n.t('loadFileError', err.message));
     }
   }
 
@@ -418,7 +439,7 @@ class App {
   exportModel(format) {
     const targets = this.sm.selectedObjects.length > 0 ? this.sm.selectedObjects : this.sm.objects;
     if (targets.length === 0) {
-      Notification.warning('エクスポートするモデルがありません');
+      Notification.warning(I18n.t('exportWarning'));
       return;
     }
 
@@ -438,7 +459,7 @@ class App {
         Exporter.exportPLY(targets, `${defaultName}.ply`, true);
         break;
     }
-    Notification.success(`${targets.length}個のモデルを${format.toUpperCase()}形式で出力しました`);
+    Notification.success(I18n.t('exportSuccess', targets.length, format.toUpperCase()));
   }
 
   // UI同期
@@ -458,7 +479,7 @@ class App {
       nameWrap.className = 'item-name-wrap';
       nameWrap.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-        <span>${mesh.name || 'モデル'}</span>
+        <span>${mesh.name || 'Model'}</span>
       `;
 
       const actions = document.createElement('div');
@@ -466,7 +487,7 @@ class App {
 
       const delBtn = document.createElement('button');
       delBtn.className = 'icon-btn-mini';
-      delBtn.title = '削除';
+      delBtn.title = I18n.t('deleteTitle');
       delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>';
       delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -599,14 +620,14 @@ class App {
       content.style.display = 'none';
       empty.style.display = 'block';
       empty.textContent = this.sm.selectedObjects.length > 1
-        ? `${this.sm.selectedObjects.length} 個のオブジェクトが選択されています`
-        : 'オブジェクトを選択するとプロパティが表示されます';
+        ? I18n.t('selectedItems', this.sm.selectedObjects.length)
+        : I18n.t('selectPrompt');
     }
   }
 
   updateStatusBar() {
     const selCount = this.sm.selectedObjects.length;
-    document.getElementById('status-selection').textContent = selCount > 0 ? `選択中: ${selCount} 個` : '未選択';
+    document.getElementById('status-selection').textContent = selCount > 0 ? I18n.t('selectionCount', selCount) : I18n.t('noSelection');
 
     let totalTris = 0;
     this.sm.objects.forEach(mesh => {
@@ -615,7 +636,7 @@ class App {
         totalTris += geom.index ? geom.index.count / 3 : geom.attributes.position.count / 3;
       }
     });
-    document.getElementById('status-stats').textContent = `総ポリゴン: ${Math.floor(totalTris).toLocaleString()}`;
+    document.getElementById('status-stats').textContent = I18n.t('totalPolygons', Math.floor(totalTris).toLocaleString());
   }
 }
 

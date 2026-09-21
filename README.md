@@ -12,6 +12,7 @@ It runs **100% locally** in your browser without any external network communicat
 
 - **100% Offline & Private**: Zero external API or CDN requests. All 3D rendering, CSG Boolean operations, and file read/write operations execute entirely within your local browser.
 - **Fluent Design Interface**: Clean, intuitive Windows 11 / 3D Builder-inspired aesthetic with glassmorphism, responsive panels, and dark mode.
+- **Multilingual Support**: Switch seamlessly between **Japanese 🇯🇵 and English 🇺🇸** via the header dropdown (preference automatically saved to localStorage).
 - **Advanced Mesh Editing**:
   - **Boolean Operations**: Union (Merge), Subtract (Difference), Intersect
   - **Split / Plane Slicing**: Cut models at any height and angle with automatic polygon capping (keep top, keep bottom, or split both)

@@ -13,8 +13,8 @@ export class Viewer {
     this.scene.background = new THREE.Color(0x18181c);
 
     // Camera
-    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 2000);
-    this.camera.position.set(150, 160, 200);
+    this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 3000);
+    this.camera.position.set(200, 220, 260);
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -68,8 +68,8 @@ export class Viewer {
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     dirLight.shadow.camera.near = 10;
-    dirLight.shadow.camera.far = 600;
-    const d = 160;
+    dirLight.shadow.camera.far = 800;
+    const d = 240;
     dirLight.shadow.camera.left = -d;
     dirLight.shadow.camera.right = d;
     dirLight.shadow.camera.top = d;
@@ -78,7 +78,7 @@ export class Viewer {
     this.scene.add(dirLight);
 
     const fillLight = new THREE.DirectionalLight(0x90b0e0, 0.8);
-    fillLight.position.set(-100, 80, -100);
+    fillLight.position.set(-150, 100, -150);
     this.scene.add(fillLight);
   }
 
@@ -86,29 +86,45 @@ export class Viewer {
     this.buildPlateGroup = new THREE.Group();
     this.buildPlateGroup.name = 'BuildPlateGroup';
 
-    // Grid (200mm x 200mm, 10mm divisions)
-    const gridSize = 200;
-    const gridDivisions = 20;
-    const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x0078d4, 0x333340);
-    gridHelper.position.y = 0.01;
-    this.buildPlateGroup.add(gridHelper);
+    const gridSize = 400; // 400mm x 400mm に拡張
 
-    // Sub-grid (1mm lines subtle)
-    const subGrid = new THREE.GridHelper(gridSize, 200, 0x22222a, 0x22222a);
+    // 1. サブグリッド (2mm単位 - 視認性の良いソフトグレー)
+    const subDivisions = 200; // 400 / 2mm = 200分割
+    const subGrid = new THREE.GridHelper(gridSize, subDivisions, 0x4a4d60, 0x2e3240);
     subGrid.position.y = 0.005;
     this.buildPlateGroup.add(subGrid);
 
-    // Shadow receiver plane
+    // 2. メイングリッド (10mm単位 - 鮮明で見やすいライトアクア & スレートグレー)
+    const mainDivisions = 40; // 400 / 10mm = 40分割
+    const mainGrid = new THREE.GridHelper(gridSize, mainDivisions, 0x00d2ff, 0x58607a);
+    mainGrid.position.y = 0.01;
+    this.buildPlateGroup.add(mainGrid);
+
+    // 3. ビルドプレート外枠フレーム（鮮やかな境界線）
+    const borderGeo = new THREE.BufferGeometry();
+    const half = gridSize / 2;
+    const borderPoints = new Float32Array([
+      -half, 0.015, -half,   half, 0.015, -half,
+       half, 0.015, -half,   half, 0.015,  half,
+       half, 0.015,  half,  -half, 0.015,  half,
+      -half, 0.015,  half,  -half, 0.015, -half
+    ]);
+    borderGeo.setAttribute('position', new THREE.BufferAttribute(borderPoints, 3));
+    const borderMat = new THREE.LineBasicMaterial({ color: 0x0078d4, linewidth: 2 });
+    const borderLines = new THREE.LineSegments(borderGeo, borderMat);
+    this.buildPlateGroup.add(borderLines);
+
+    // 4. 影受け平面 (Shadow receiver plane)
     const planeGeo = new THREE.PlaneGeometry(gridSize, gridSize);
-    const planeMat = new THREE.ShadowMaterial({ opacity: 0.25 });
+    const planeMat = new THREE.ShadowMaterial({ opacity: 0.3 });
     const shadowPlane = new THREE.Mesh(planeGeo, planeMat);
     shadowPlane.rotation.x = -Math.PI / 2;
     shadowPlane.position.y = 0;
     shadowPlane.receiveShadow = true;
     this.buildPlateGroup.add(shadowPlane);
 
-    // Axis indicators at origin (X: Red, Y: Green, Z: Blue)
-    const axes = new THREE.AxesHelper(20);
+    // 5. 原点XYZ軸マーカー (見やすく拡大)
+    const axes = new THREE.AxesHelper(35);
     axes.position.y = 0.02;
     axes.renderOrder = 1;
     this.buildPlateGroup.add(axes);
@@ -136,7 +152,7 @@ export class Viewer {
 
   // Camera presets
   setView(viewName) {
-    const dist = 220;
+    const dist = 360;
     const target = this.orbit.target;
     switch (viewName) {
       case 'top':
@@ -156,7 +172,7 @@ export class Viewer {
         break;
       case 'iso':
       default:
-        this.camera.position.set(target.x + 140, target.y + 140, target.z + 180);
+        this.camera.position.set(target.x + 220, target.y + 220, target.z + 260);
         break;
     }
     this.camera.lookAt(target);

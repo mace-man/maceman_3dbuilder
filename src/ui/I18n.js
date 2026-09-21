@@ -125,7 +125,7 @@ export const translations = {
     noSelection: '未選択',
     selectionCount: '選択中: {0} 個',
     totalPolygons: '総ポリゴン: {0}',
-    buildPlateSize: 'ビルドプレート: 200 × 200 mm',
+    buildPlateSize: 'ビルドプレート: 400 × 400 mm',
     controlHint: 'ドラッグで視点移動 / 右ドラッグでパン / ホイールでズーム',
 
     // Dialog & Notifications
@@ -277,7 +277,7 @@ export const translations = {
     noSelection: 'No selection',
     selectionCount: 'Selected: {0}',
     totalPolygons: 'Total Polygons: {0}',
-    buildPlateSize: 'Build Plate: 200 × 200 mm',
+    buildPlateSize: 'Build Plate: 400 × 400 mm',
     controlHint: 'Drag to rotate / Right-drag to pan / Wheel to zoom',
 
     // Dialog & Notifications

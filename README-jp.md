@@ -160,8 +160,8 @@ Vite開発サーバーとElectronウィンドウが連携して起動します�
   ```bash
   npm run build:win
   ```
-  - `release/mace-man 3D Builder Setup 1.1.1.exe`（NSISインストーラー）
-  - `release/mace-man 3D Builder 1.1.1.exe`（インストール不要のポータブル実行ファイル）
+  - `release/mace-man 3D Builder Setup 1.1.2.exe`（NSISインストーラー）
+  - `release/mace-man 3D Builder 1.1.2.exe`（インストール不要のポータブル実行ファイル）
 
 - **Linux用実行ファイルのビルド**:
   ```bash
@@ -171,7 +171,7 @@ Vite開発サーバーとElectronウィンドウが連携して起動します�
   # Linux環境でAppImageやdebを出力する場合
   npm run build:linux
   ```
-  - `release/mace-man-3dbuilder-1.1.1.zip`
+  - `release/mace-man-3dbuilder-1.1.2.zip`
 
 - **macOS用実行ファイル（.dmg / .zip）のビルド**:
   ```bash
@@ -180,11 +180,16 @@ Vite開発サーバーとElectronウィンドウが連携して起動します�
   *(※macOS向けビルドはAppleの規約およびツールの関係上、macOS環境または後述のGitHub Actions CIから出力します)*
 
 ### 3. GitHub Actions による全OS自動ビルド＆リリース
-`.github/workflows/build.yml` を同梱しているため、リポジトリをプッシュまたは `v1.1.1` などのタグを作成するだけで、GitHub上の Windows / macOS / Linux ランナーが並列で実行ファイルを自動ビルドし、GitHub Releases へ即座に配布バイナリをアップロードします。
+`.github/workflows/build.yml` を同梱しているため、リポジトリをプッシュまたは `v1.1.2` などのタグを作成するだけで、GitHub上の Windows / macOS / Linux ランナーが並列で実行ファイルを自動ビルドし、GitHub Releases へ即座に配布バイナリをアップロードします。
 
 ---
 
 ## 📝 更新履歴
+
+### v1.1.2
+- **CI / GitHub Actions でのビルド安定化**:
+  - `electron-builder` 実行スクリプトに `--publish never` を追加し、CI環境（GitHub Actions）で `GH_TOKEN` 未設定エラー（自動パブリッシュ試行）が発生してビルドが失敗する問題を修正。
+  - `electron-builder.json` に `"publish": null` を追加し、暗黙的な自動リリース公開を無効化。
 
 ### v1.1.1
 - **ペイント「X線 (透明)」機能の不具合修正**:

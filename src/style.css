@@ -711,3 +711,29 @@ body, html {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Simplify Controls Overlay */
+#simplify-controls {
+  animation: fadeInDown 0.18s ease-out;
+}
+
+#simplify-controls input[type="range"] {
+  accent-color: var(--accent-color);
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-surface-active);
+  outline: none;
+}
+
+#simplify-level-val {
+  background: var(--bg-surface-active);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 2px 6px;
+  display: inline-block;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

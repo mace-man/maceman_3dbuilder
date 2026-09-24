@@ -121,16 +121,27 @@ Select two or more objects (hold `Shift` or `Ctrl` while clicking), then choose 
 4. Select a mode: **Keep Top**, **Keep Bottom**, or **Keep Both**.
 5. Click **Apply Split**. The cut surface is automatically capped with clean polygon faces.
 
-### 6. Painting & Materials (Paint Tab)
+### 6. Mesh Simplification (Simplify) (Edit Tab)
+Just like in Microsoft 3D Builder, reduce mesh vertex and polygon count (decimation) to optimize geometry and reduce file sizes while preserving shape contours.
+1. Select an object and click **Simplify** in the Edit tab.
+2. A floating controls bar will appear at the top.
+3. Drag the slider (steps 0 to 6):
+   - **0 (far left)**: No modification (original mesh preserved).
+   - **1 to 5**: Incrementally decimate vertices with real-time 3D canvas and vertex count preview.
+   - **6 (far right)**: Maximum decimation (heavily simplified while maintaining essential geometry).
+4. Click **Apply** (or press `Enter`) to confirm (can be undone with `Ctrl+Z`).
+5. Click **Cancel** (or press `Esc`) to discard changes and revert to original mesh.
+
+### 7. Painting & Materials (Paint Tab)
 - Real-time color picker and preset palette swatches.
 - Roughness and Metalness sliders for surface finish.
 - Wireframe toggle and X-Ray (translucent) preview modes.
 
-### 7. File Import & Export (File Tab)
+### 8. File Import & Export (File Tab)
 - **Import**: Click "Open" or simply **drag and drop** files (.stl, .obj, .3mf, .glb, .ply) directly onto the 3D canvas.
 - **Export**: Export selected objects or the entire scene to `.stl` (binary format, ideal for 3D printing), `.3mf` (modern 3D manufacturing format), `.obj`, `.glb`, or `.ply`.
 
-### 8. Keyboard Shortcuts
+### 9. Keyboard Shortcuts
 | Key | Action |
 | :--- | :--- |
 | `W` | Translate Gizmo (Move) |
@@ -141,6 +152,8 @@ Select two or more objects (hold `Shift` or `Ctrl` while clicking), then choose 
 | `Ctrl` + `Z` | Undo |
 | `Ctrl` + `Y` (or `Ctrl`+`Shift`+`Z`) | Redo |
 | `Shift` + Click | Multi-select / Toggle selection |
+| `Enter` | Confirm Simplification |
+| `Esc` | Cancel Simplification |
 
 ---
 
@@ -162,8 +175,8 @@ Build outputs are saved to the `release/` directory:
   ```bash
   npm run build:win
   ```
-  - `release/mace-man 3D Builder Setup 1.1.2.exe` (NSIS Installer with desktop/start menu shortcuts)
-  - `release/mace-man 3D Builder 1.1.2.exe` (Zero-install Portable Executable)
+  - `release/mace-man 3D Builder Setup 1.1.3.exe` (NSIS Installer with desktop/start menu shortcuts)
+  - `release/mace-man 3D Builder 1.1.3.exe` (Zero-install Portable Executable)
 
 - **Linux Executables**:
   ```bash
@@ -173,7 +186,7 @@ Build outputs are saved to the `release/` directory:
   # Build AppImage & deb on Linux host:
   npm run build:linux
   ```
-  - `release/mace-man-3dbuilder-1.1.2.zip`
+  - `release/mace-man-3dbuilder-1.1.3.zip`
 
 - **macOS Application (.dmg / .zip)**:
   ```bash
@@ -182,11 +195,19 @@ Build outputs are saved to the `release/` directory:
   *(Note: macOS requires a macOS host or the included GitHub Actions CI runner to produce signed/packaged .dmg or .zip files).*
 
 ### 3. Automated Multi-Platform CI/CD with GitHub Actions
-A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.2`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
+A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.3`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
 
 ---
 
 ## 📝 Changelog
+
+### v1.1.3
+- **New "Mesh Simplification (Simplify)" Tool**:
+  - Added "Simplify" decimation tool to the Edit tab to reduce model vertex and polygon counts like Microsoft 3D Builder.
+  - Features a 0–6 slider with real-time 3D viewport preview, Apply (with full Undo/Redo support), and Cancel.
+- **Watertight & Hole-Prevention Protection**:
+  - Implemented position-only vertex welding prior to simplification to eliminate normal-split vertex seam gaps and holes.
+  - Added binary search for safe maximum removable vertex limits and real-time boundary edge checks, ensuring lower-poly models never develop holes or collapse faces beyond safe limits.
 
 ### v1.1.2
 - **CI / GitHub Actions Build Stability**:

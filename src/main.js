@@ -5,6 +5,7 @@ import { History } from './core/History.js';
 import { Primitives } from './operations/Primitives.js';
 import { BooleanOps } from './operations/BooleanOps.js';
 import { SplitOps } from './operations/SplitOps.js';
+import { SimplifyOps } from './operations/SimplifyOps.js';
 import { TransformOps } from './operations/TransformOps.js';
 import { Importer } from './io/Importer.js';
 import { Exporter } from './io/Exporter.js';
@@ -40,6 +41,13 @@ class App {
     this.sliceMode = 'both';
     this.sliceHelper = SplitOps.createSlicePlaneHelper();
     this.viewer.scene.add(this.sliceHelper);
+
+    // 単純化状態
+    this.simplifyActive = false;
+    this.simplifyTarget = null;
+    this.simplifyOriginalGeometry = null;
+    this.simplifyInitialStats = null;
+    this.simplifyCache = new Map();
 
     this.bindEvents();
     this.setupDropZone();
@@ -179,6 +187,14 @@ class App {
       this.updateSlicePlane();
     });
 
+    // 6.5. 単純化
+    document.getElementById('btn-start-simplify').addEventListener('click', () => this.startSimplify());
+    document.getElementById('btn-simplify-apply').addEventListener('click', () => this.applySimplify());
+    document.getElementById('btn-simplify-cancel').addEventListener('click', () => this.cancelSimplify());
+    document.getElementById('simplify-slider').addEventListener('input', (e) => {
+      this.updateSimplify(parseInt(e.target.value, 10));
+    });
+
     // 7. ペイント
     const colorInput = document.getElementById('paint-color');
     colorInput.addEventListener('input', (e) => {
@@ -268,7 +284,22 @@ class App {
     this.setupInspectorBindings();
 
     // 11. イベントリッスン
+    window.addEventListener('keydown', (e) => {
+      if (this.simplifyActive) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          this.cancelSimplify();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          this.applySimplify();
+        }
+      }
+    });
+
     this.sm.on('selectionChanged', () => {
+      if (this.simplifyActive && (!this.sm.selectedObjects.includes(this.simplifyTarget))) {
+        this.cancelSimplify();
+      }
       this.updateOutliner();
       this.updateInspector();
       this.updatePaintUI();
@@ -355,6 +386,10 @@ class App {
       return;
     }
 
+    if (this.simplifyActive) {
+      this.cancelSimplify();
+    }
+
     this.sliceTarget = this.sm.selectedObjects[0];
     this.sliceActive = true;
     document.getElementById('split-controls').classList.remove('hidden');
@@ -413,6 +448,170 @@ class App {
     this.sliceTarget = null;
     this.sliceHelper.visible = false;
     document.getElementById('split-controls').classList.add('hidden');
+  }
+
+  // 単純化開始
+  startSimplify() {
+    if (this.sm.selectedObjects.length === 0) {
+      Notification.warning(I18n.t('simplifyPrompt'));
+      return;
+    }
+
+    if (this.sliceActive) {
+      this.cancelSplit();
+    }
+
+    this.simplifyTarget = this.sm.selectedObjects[0];
+    if (!this.simplifyTarget.geometry) {
+      Notification.warning(I18n.t('simplifyPrompt'));
+      return;
+    }
+
+    this.simplifyActive = true;
+    this.simplifyOriginalGeometry = this.simplifyTarget.geometry.clone();
+    this.simplifyInitialStats = SimplifyOps.getMeshStats(this.simplifyOriginalGeometry);
+
+    // 穴あき防止の安全最大削減可能数を事前算出
+    const welded = SimplifyOps.createWeldedGeometry(this.simplifyOriginalGeometry);
+    this.simplifyMaxSafe = SimplifyOps.findMaxSafeRemovable(welded);
+
+    // キャッシュの初期化
+    this.simplifyCache = new Map();
+    this.simplifyCache.set(0, {
+      geometry: this.simplifyOriginalGeometry.clone(),
+      initialVerts: this.simplifyInitialStats.vertices,
+      finalVerts: this.simplifyInitialStats.vertices,
+      initialFaces: this.simplifyInitialStats.faces,
+      finalFaces: this.simplifyInitialStats.faces,
+      maxSafe: this.simplifyMaxSafe,
+      isLimitReached: false
+    });
+
+    // スライダーと表示の初期化
+    const slider = document.getElementById('simplify-slider');
+    slider.value = '0';
+    document.getElementById('simplify-level-val').textContent = '0';
+
+    const vSpan = document.getElementById('simplify-verts-preview');
+    const fSpan = document.getElementById('simplify-faces-preview');
+    const noticeSpan = document.getElementById('simplify-limit-notice');
+    if (vSpan) vSpan.textContent = `頂点: ${this.simplifyInitialStats.vertices.toLocaleString()}`;
+    if (fSpan) fSpan.textContent = `面: ${this.simplifyInitialStats.faces.toLocaleString()}`;
+    if (noticeSpan) {
+      noticeSpan.style.display = this.simplifyMaxSafe <= 0 ? 'inline-block' : 'none';
+      if (this.simplifyMaxSafe <= 0) {
+        Notification.info(I18n.t('simplifyCannotReduce'));
+      }
+    }
+
+    // 操作中のギズモを一時的にデタッチ
+    if (this.sm.transformControls) {
+      this.sm.transformControls.detach();
+    }
+
+    document.getElementById('simplify-controls').classList.remove('hidden');
+  }
+
+  // スライダー変更時のプレビュー更新
+  updateSimplify(level) {
+    if (!this.simplifyActive || !this.simplifyTarget || !this.simplifyOriginalGeometry) return;
+
+    const clampedLevel = Math.max(0, Math.min(6, level));
+    document.getElementById('simplify-level-val').textContent = String(clampedLevel);
+
+    let res = this.simplifyCache.get(clampedLevel);
+    if (!res) {
+      res = SimplifyOps.simplifyMeshGeometry(this.simplifyOriginalGeometry, clampedLevel, this.simplifyMaxSafe);
+      this.simplifyCache.set(clampedLevel, res);
+    }
+
+    // ジオメトリのプレビュー更新
+    this.simplifyTarget.geometry.dispose();
+    this.simplifyTarget.geometry = res.geometry.clone();
+
+    // プレビュー情報表示の更新
+    const vSpan = document.getElementById('simplify-verts-preview');
+    const fSpan = document.getElementById('simplify-faces-preview');
+    const noticeSpan = document.getElementById('simplify-limit-notice');
+    if (vSpan) {
+      const vText = clampedLevel === 0
+        ? `頂点: ${res.initialVerts.toLocaleString()}`
+        : `頂点: ${res.initialVerts.toLocaleString()} → ${res.finalVerts.toLocaleString()}`;
+      vSpan.textContent = vText;
+    }
+    if (fSpan) {
+      const fText = clampedLevel === 0
+        ? `面: ${res.initialFaces.toLocaleString()}`
+        : `面: ${res.initialFaces.toLocaleString()} → ${res.finalFaces.toLocaleString()}`;
+      fSpan.textContent = fText;
+    }
+    if (noticeSpan) {
+      noticeSpan.style.display = (res.isLimitReached || (clampedLevel > 0 && this.simplifyMaxSafe <= 0)) ? 'inline-block' : 'none';
+    }
+
+    // インスペクターの頂点数・面数も同期
+    this.updateInspector();
+    this.updateStatusBar();
+  }
+
+  // 決定ボタンで確定
+  applySimplify() {
+    if (!this.simplifyActive || !this.simplifyTarget) return;
+
+    const slider = document.getElementById('simplify-slider');
+    const currentLevel = parseInt(slider.value, 10);
+
+    if (currentLevel > 0) {
+      const currentSimplified = this.simplifyTarget.geometry.clone();
+      // Undoできるように、一旦元のジオメトリ状態に戻してスナップショットを作成
+      this.simplifyTarget.geometry.dispose();
+      this.simplifyTarget.geometry = this.simplifyOriginalGeometry.clone();
+      this.history.captureSnapshot();
+
+      // 単純化ジオメトリを確定セット
+      this.simplifyTarget.geometry.dispose();
+      this.simplifyTarget.geometry = currentSimplified;
+
+      const finalStats = SimplifyOps.getMeshStats(currentSimplified);
+      Notification.success(I18n.t('simplifySuccess', this.simplifyInitialStats.vertices.toLocaleString(), finalStats.vertices.toLocaleString()));
+    } else {
+      Notification.info(I18n.t('simplifyNoChange'));
+    }
+
+    this.cleanupSimplify(false);
+  }
+
+  // キャンセルで無効（元の形状に戻す）
+  cancelSimplify() {
+    if (!this.simplifyActive || !this.simplifyTarget) return;
+
+    if (this.simplifyOriginalGeometry) {
+      this.simplifyTarget.geometry.dispose();
+      this.simplifyTarget.geometry = this.simplifyOriginalGeometry.clone();
+    }
+
+    this.cleanupSimplify(true);
+  }
+
+  cleanupSimplify(isCancelled = false) {
+    this.simplifyActive = false;
+    document.getElementById('simplify-controls').classList.add('hidden');
+
+    const noticeSpan = document.getElementById('simplify-limit-notice');
+    if (noticeSpan) noticeSpan.style.display = 'none';
+
+    // ギズモの再アタッチ
+    if (this.simplifyTarget && this.sm.transformControls) {
+      this.sm.transformControls.attach(this.simplifyTarget);
+    }
+
+    this.simplifyTarget = null;
+    this.simplifyOriginalGeometry = null;
+    this.simplifyMaxSafe = null;
+    this.simplifyCache.clear();
+
+    this.updateInspector();
+    this.updateStatusBar();
   }
 
   // ファイル入出力

@@ -3,8 +3,7 @@ export const translations = {
   ja: {
     // Brand & Header
     appName: 'mace-man 3D Builder',
-    offlineBadge: 'オフライン完結',
-    
+
     // Quick Actions
     undoTitle: '元に戻す (Ctrl+Z)',
     redoTitle: 'やり直す (Ctrl+Y)',
@@ -97,6 +96,24 @@ export const translations = {
     splitApply: '切断を実行',
     splitCancel: 'キャンセル',
 
+    // Simplify Overlay & Buttons
+    simplify: '単純化',
+    simplifyTitle: '選択モデルの頂点を減らして軽量化・単純化',
+    simplifyHeader: '🔷 メッシュ単純化',
+    simplifyLevel: '削減度:',
+    simplifyLevelVal: 'レベル {0}',
+    simplifyPrompt: '単純化するオブジェクトを選択してください',
+    simplifySuccess: 'モデルを単純化しました (頂点: {0} → {1})',
+    simplifyNoChange: '変更はありませんでした',
+    simplifyError: '単純化処理に失敗しました',
+    simplifyApply: '決定',
+    simplifyCancel: 'キャンセル',
+    simplifyVertsPreview: '頂点: {0} → {1}',
+    simplifyFacesPreview: '面: {0} → {1}',
+    simplifyMinWarning: 'これ以上頂点を削減できません',
+    simplifyHoleLimitNotice: '穴あき防止リミット到達',
+    simplifyCannotReduce: '穴あき防止のためこれ以上単純化できません',
+
     // Outliner & Inspector
     outlinerTitle: 'アイテム一覧',
     inspectorTitle: 'プロパティ',
@@ -157,8 +174,7 @@ export const translations = {
   en: {
     // Brand & Header
     appName: 'mace-man 3D Builder',
-    offlineBadge: 'Offline',
-    
+
     // Quick Actions
     undoTitle: 'Undo (Ctrl+Z)',
     redoTitle: 'Redo (Ctrl+Y)',
@@ -250,6 +266,24 @@ export const translations = {
     splitAngle: 'Angle:',
     splitApply: 'Apply Split',
     splitCancel: 'Cancel',
+
+    // Simplify Overlay & Buttons
+    simplify: 'Simplify',
+    simplifyTitle: 'Reduce mesh vertices and simplify 3D model',
+    simplifyHeader: '🔷 Mesh Simplify',
+    simplifyLevel: 'Reduction:',
+    simplifyLevelVal: 'Level {0}',
+    simplifyPrompt: 'Select an object to simplify',
+    simplifySuccess: 'Model simplified (Vertices: {0} → {1})',
+    simplifyNoChange: 'No changes made',
+    simplifyError: 'Failed to simplify model',
+    simplifyApply: 'Apply',
+    simplifyCancel: 'Cancel',
+    simplifyVertsPreview: 'Vertices: {0} → {1}',
+    simplifyFacesPreview: 'Faces: {0} → {1}',
+    simplifyMinWarning: 'Cannot reduce vertices further',
+    simplifyHoleLimitNotice: 'Hole-prevention limit reached',
+    simplifyCannotReduce: 'Cannot simplify further to prevent holes',
 
     // Outliner & Inspector
     outlinerTitle: 'Items',

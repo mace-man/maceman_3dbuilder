@@ -162,8 +162,8 @@ Build outputs are saved to the `release/` directory:
   ```bash
   npm run build:win
   ```
-  - `release/mace-man 3D Builder Setup 1.1.0.exe` (NSIS Installer with desktop/start menu shortcuts)
-  - `release/mace-man 3D Builder 1.1.0.exe` (Zero-install Portable Executable)
+  - `release/mace-man 3D Builder Setup 1.1.1.exe` (NSIS Installer with desktop/start menu shortcuts)
+  - `release/mace-man 3D Builder 1.1.1.exe` (Zero-install Portable Executable)
 
 - **Linux Executables**:
   ```bash
@@ -173,7 +173,7 @@ Build outputs are saved to the `release/` directory:
   # Build AppImage & deb on Linux host:
   npm run build:linux
   ```
-  - `release/mace-man-3dbuilder-1.1.0.zip`
+  - `release/mace-man-3dbuilder-1.1.1.zip`
 
 - **macOS Application (.dmg / .zip)**:
   ```bash
@@ -182,7 +182,25 @@ Build outputs are saved to the `release/` directory:
   *(Note: macOS requires a macOS host or the included GitHub Actions CI runner to produce signed/packaged .dmg or .zip files).*
 
 ### 3. Automated Multi-Platform CI/CD with GitHub Actions
-A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.0`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
+A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.1`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
+
+---
+
+## 📝 Changelog
+
+### v1.1.1
+- **Fixed Paint "X-Ray (Translucent)" mode**:
+  - Corrected Three.js material flags by applying `needsUpdate = true` and `depthWrite = false` on dynamic opacity changes, ensuring translucent rendering displays immediately on screen.
+  - Synchronized paint toolbar controls (color picker, wireframe, and X-ray toggle) when active selection changes.
+  - Enhanced traversal routines to safely apply materials across multi-material meshes and complex group hierarchies.
+- **Enhanced Gizmo Uniform Scaling ("Lock Aspect Ratio")**:
+  - Maintained aspect ratios when dragging single-axis (X, Y, Z) TransformControls scale handles while "Lock Aspect Ratio" is enabled.
+  - Implemented seamless 3D uniform scaling when dragging 2D plane handles (XY, YZ, XZ) and the XYZ center handle based on handle projection vectors.
+  - Added undo/redo history snapshot capture upon transform gizmo drag completion.
+
+### v1.1.0
+- Added multi-platform Electron desktop GUI app packaging (Windows, macOS, Linux).
+- Integrated GitHub Actions automated cross-platform build and release workflow.
 
 ---
 

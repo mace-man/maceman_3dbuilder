@@ -160,8 +160,8 @@ Vite開発サーバーとElectronウィンドウが連携して起動します�
   ```bash
   npm run build:win
   ```
-  - `release/mace-man 3D Builder Setup 1.1.0.exe`（NSISインストーラー）
-  - `release/mace-man 3D Builder 1.1.0.exe`（インストール不要のポータブル実行ファイル）
+  - `release/mace-man 3D Builder Setup 1.1.1.exe`（NSISインストーラー）
+  - `release/mace-man 3D Builder 1.1.1.exe`（インストール不要のポータブル実行ファイル）
 
 - **Linux用実行ファイルのビルド**:
   ```bash
@@ -171,7 +171,7 @@ Vite開発サーバーとElectronウィンドウが連携して起動します�
   # Linux環境でAppImageやdebを出力する場合
   npm run build:linux
   ```
-  - `release/mace-man-3dbuilder-1.1.0.zip`
+  - `release/mace-man-3dbuilder-1.1.1.zip`
 
 - **macOS用実行ファイル（.dmg / .zip）のビルド**:
   ```bash
@@ -180,7 +180,25 @@ Vite開発サーバーとElectronウィンドウが連携して起動します�
   *(※macOS向けビルドはAppleの規約およびツールの関係上、macOS環境または後述のGitHub Actions CIから出力します)*
 
 ### 3. GitHub Actions による全OS自動ビルド＆リリース
-`.github/workflows/build.yml` を同梱しているため、リポジトリをプッシュまたは `v1.1.0` などのタグを作成するだけで、GitHub上の Windows / macOS / Linux ランナーが並列で実行ファイルを自動ビルドし、GitHub Releases へ即座に配布バイナリをアップロードします。
+`.github/workflows/build.yml` を同梱しているため、リポジトリをプッシュまたは `v1.1.1` などのタグを作成するだけで、GitHub上の Windows / macOS / Linux ランナーが並列で実行ファイルを自動ビルドし、GitHub Releases へ即座に配布バイナリをアップロードします。
+
+---
+
+## 📝 更新履歴
+
+### v1.1.1
+- **ペイント「X線 (透明)」機能の不具合修正**:
+  - Three.js マテリアルの `needsUpdate = true` および透過時の `depthWrite = false` を正しく設定し、半透明表示が画面上に確実に反映されるよう修正。
+  - オブジェクト選択変更時にペイントツールのカラー、ワイヤーフレーム、X線ボタンの状態が同期されるよう改善。
+  - グループ階層やマルチマテリアルを持つオブジェクトに対しても全メッシュへ確実に適用するよう走査処理を強化。
+- **ギズモ拡大縮小時の比率維持（Lock Aspect Ratio）対応**:
+  - 「比率維持」チェックがONの状態で、3Dギズモ（TransformControls）のXYZ単一軸ハンドルをドラッグした際にもアスペクト比を維持して拡大縮小するよう改善。
+  - XY, YZ, XZ 平面ハンドルおよび全軸ハンドルをドラッグした際にも、平面上のドラッグ距離・移動ベクトルに応じて3軸すべての立体比率が均等に維持されたままスムーズに拡大縮小するよう改善。
+  - ギズモドラッグ操作完了時の Undo（元に戻す）履歴記録に対応。
+
+### v1.1.0
+- Electron によるマルチプラットフォーム デスクトップGUIアプリケーション対応（Windows / macOS / Linux）。
+- GitHub Actions による全OSクロスプラットフォーム自動ビルド＆リリースワークフロー導入。
 
 ---
 
@@ -194,7 +212,8 @@ maceman_3dbuilder/
 ├── start.bat               # Windows用起動バッチファイル
 ├── start.ps1               # Windows用PowerShell起動スクリプト
 ├── start.sh                # macOS/Linux用起動シェルスクリプト
-├── README.md               # 本ドキュメント
+├── README.md               # 英語ドキュメント
+├── README-jp.md            # 日本語ドキュメント
 └── src/
     ├── main.js             # アプリケーション全体の初期化とイベント制御
     ├── style.css           # Fluent Designスタイルシート

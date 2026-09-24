@@ -200,18 +200,29 @@ class App {
       this.sm.setSelectedMetalness(parseFloat(e.target.value));
     });
 
-    let isWireframe = false;
-    document.getElementById('btn-toggle-wireframe').addEventListener('click', (e) => {
-      isWireframe = !isWireframe;
-      e.currentTarget.classList.toggle('active', isWireframe);
-      this.sm.setSelectedWireframe(isWireframe);
+    const btnWireframe = document.getElementById('btn-toggle-wireframe');
+    btnWireframe.addEventListener('click', () => {
+      if (this.sm.selectedObjects.length === 0) {
+        Notification.warning(I18n.t('selectPrompt'));
+        return;
+      }
+      const mat = this.sm.getSelectedMaterial();
+      const nextWireframe = mat ? !mat.wireframe : !btnWireframe.classList.contains('active');
+      this.sm.setSelectedWireframe(nextWireframe);
+      btnWireframe.classList.toggle('active', nextWireframe);
     });
 
-    let isXray = false;
-    document.getElementById('btn-toggle-xray').addEventListener('click', (e) => {
-      isXray = !isXray;
-      e.currentTarget.classList.toggle('active', isXray);
-      this.sm.setSelectedOpacity(isXray ? 0.45 : 1.0);
+    const btnXray = document.getElementById('btn-toggle-xray');
+    btnXray.addEventListener('click', () => {
+      if (this.sm.selectedObjects.length === 0) {
+        Notification.warning(I18n.t('selectPrompt'));
+        return;
+      }
+      const mat = this.sm.getSelectedMaterial();
+      const isCurrentlyXray = mat ? (mat.transparent && mat.opacity < 1.0) : btnXray.classList.contains('active');
+      const nextXray = !isCurrentlyXray;
+      this.sm.setSelectedOpacity(nextXray ? 0.45 : 1.0);
+      btnXray.classList.toggle('active', nextXray);
     });
 
     // 8. 表示
@@ -260,17 +271,23 @@ class App {
     this.sm.on('selectionChanged', () => {
       this.updateOutliner();
       this.updateInspector();
+      this.updatePaintUI();
       this.updateStatusBar();
     });
 
     this.sm.on('objectsChanged', () => {
       this.updateOutliner();
       this.updateInspector();
+      this.updatePaintUI();
       this.updateStatusBar();
     });
 
     this.sm.on('transformChanged', () => {
       this.updateInspector();
+    });
+
+    this.sm.on('transformEnd', () => {
+      this.history.captureSnapshot();
     });
   }
 
@@ -548,6 +565,11 @@ class App {
       }
     };
 
+    lockAspect.addEventListener('change', (e) => {
+      this.sm.lockAspect = e.target.checked;
+    });
+    this.sm.lockAspect = lockAspect.checked;
+
     dimX.addEventListener('change', (e) => updateDims('x', parseFloat(e.target.value)));
     dimY.addEventListener('change', (e) => updateDims('y', parseFloat(e.target.value)));
     dimZ.addEventListener('change', (e) => updateDims('z', parseFloat(e.target.value)));
@@ -609,9 +631,10 @@ class App {
       document.getElementById('rot-y').value = THREE.MathUtils.radToDeg(mesh.rotation.y).toFixed(1);
       document.getElementById('rot-z').value = THREE.MathUtils.radToDeg(mesh.rotation.z).toFixed(1);
 
-      if (mesh.material && mesh.material.roughness !== undefined) {
-        document.getElementById('mat-roughness').value = mesh.material.roughness;
-        document.getElementById('mat-metalness').value = mesh.material.metalness;
+      const mat = this.sm.getSelectedMaterial();
+      if (mat && mat.roughness !== undefined) {
+        document.getElementById('mat-roughness').value = mat.roughness;
+        document.getElementById('mat-metalness').value = mat.metalness;
       }
 
       // 頂点数・面数
@@ -626,6 +649,28 @@ class App {
       empty.textContent = this.sm.selectedObjects.length > 1
         ? I18n.t('selectedItems', this.sm.selectedObjects.length)
         : I18n.t('selectPrompt');
+    }
+  }
+
+  updatePaintUI() {
+    const btnWireframe = document.getElementById('btn-toggle-wireframe');
+    const btnXray = document.getElementById('btn-toggle-xray');
+    const colorInput = document.getElementById('paint-color');
+
+    const mat = this.sm.getSelectedMaterial();
+    if (mat) {
+      if (btnWireframe) {
+        btnWireframe.classList.toggle('active', Boolean(mat.wireframe));
+      }
+      if (btnXray) {
+        btnXray.classList.toggle('active', Boolean(mat.transparent && mat.opacity < 1.0));
+      }
+      if (colorInput && mat.color) {
+        colorInput.value = '#' + mat.color.getHexString();
+      }
+    } else {
+      if (btnWireframe) btnWireframe.classList.remove('active');
+      if (btnXray) btnXray.classList.remove('active');
     }
   }
 

@@ -5,25 +5,88 @@ export class SceneManager {
     this.viewer = viewer;
     this.objects = []; // 編集可能メッシュリスト
     this.selectedObjects = []; // 選択中のオブジェクトリスト
+    this.lockAspect = true;
+    this.scaleStart = null;
     this.listeners = {
       selectionChanged: [],
       objectsChanged: [],
-      transformChanged: []
+      transformChanged: [],
+      transformEnd: []
     };
 
     // TransformControls のイベント監視
     this.viewer.transformControls.addEventListener('objectChange', () => {
+      const tc = this.viewer.transformControls;
+      const object = tc.object;
+      if (tc.mode === 'scale' && this.lockAspect && object) {
+        if (!this.scaleStart) {
+          this.scaleStart = object.scale.clone();
+        }
+        this.applyUniformScale(tc, object);
+      }
       this.emit('transformChanged', this.selectedObjects);
     });
 
     this.viewer.transformControls.addEventListener('dragging-changed', (event) => {
-      if (!event.value) {
-        // ドラッグ終了時
+      const tc = this.viewer.transformControls;
+      const object = tc.object;
+      if (event.value) {
+        // ドラッグ開始
+        if (tc.mode === 'scale' && object) {
+          this.scaleStart = object.scale.clone();
+        }
+      } else {
+        // ドラッグ終了
+        this.scaleStart = null;
+        this.emit('transformEnd', this.selectedObjects);
         this.emit('transformChanged', this.selectedObjects);
       }
     });
 
     this.setupPointerRaycast();
+  }
+
+  // 比率維持スケール適用
+  applyUniformScale(tc, object) {
+    const start = this.scaleStart;
+    if (!start) return;
+
+    const axis = tc.axis;
+    let ratio = 1;
+
+    // 平面ハンドル (XY, YZ, XZ) または 全軸ハンドル (XYZ) の場合:
+    // pointStart から pointEnd への正射影比率を用いて、平面上でのドラッグにスムーズかつ正確に追従
+    const isPlaneOrAll = axis && (axis.length >= 2 || axis === 'XYZ');
+    if (isPlaneOrAll && tc.pointStart && tc.pointEnd && tc.pointStart.lengthSq() > 1e-6) {
+      ratio = tc.pointEnd.dot(tc.pointStart) / tc.pointStart.lengthSq();
+    } else if (axis === 'X') {
+      ratio = Math.abs(start.x) > 1e-6 ? object.scale.x / start.x : 1;
+    } else if (axis === 'Y') {
+      ratio = Math.abs(start.y) > 1e-6 ? object.scale.y / start.y : 1;
+    } else if (axis === 'Z') {
+      ratio = Math.abs(start.z) > 1e-6 ? object.scale.z / start.z : 1;
+    } else {
+      // フォールバック
+      const rx = Math.abs(start.x) > 1e-6 ? object.scale.x / start.x : 1;
+      const ry = Math.abs(start.y) > 1e-6 ? object.scale.y / start.y : 1;
+      const rz = Math.abs(start.z) > 1e-6 ? object.scale.z / start.z : 1;
+      const dx = (axis && axis.includes('X')) ? Math.abs(rx - 1) : -1;
+      const dy = (axis && axis.includes('Y')) ? Math.abs(ry - 1) : -1;
+      const dz = (axis && axis.includes('Z')) ? Math.abs(rz - 1) : -1;
+      if (dx >= dy && dx >= dz) ratio = rx;
+      else if (dy >= dx && dy >= dz) ratio = ry;
+      else ratio = rz;
+    }
+
+    if (Number.isFinite(ratio)) {
+      ratio = Math.max(0.001, ratio);
+      object.scale.set(
+        start.x * ratio,
+        start.y * ratio,
+        start.z * ratio
+      );
+      object.updateMatrixWorld(true);
+    }
   }
 
   on(event, callback) {
@@ -175,45 +238,68 @@ export class SceneManager {
     this.viewer.transformControls.setMode(mode);
   }
 
+  // オブジェクト配下の全メッシュのマテリアルに関数を適用
+  applyMaterial(callback) {
+    this.selectedObjects.forEach(obj => {
+      obj.traverse(child => {
+        if (child.isMesh && child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => callback(mat, child));
+          } else {
+            callback(child.material, child);
+          }
+        }
+      });
+    });
+  }
+
+  // 選択中オブジェクトの代表マテリアルを取得（UI反映用）
+  getSelectedMaterial() {
+    if (this.selectedObjects.length === 0) return null;
+    let foundMat = null;
+    this.selectedObjects[0].traverse(child => {
+      if (!foundMat && child.isMesh && child.material) {
+        foundMat = Array.isArray(child.material) ? child.material[0] : child.material;
+      }
+    });
+    return foundMat;
+  }
+
   // 選択中オブジェクトのマテリアル一括変更
   setSelectedColor(hexColor) {
-    this.selectedObjects.forEach(mesh => {
-      if (mesh.material) {
-        mesh.material.color.set(hexColor);
+    this.applyMaterial(mat => {
+      if (mat.color) {
+        mat.color.set(hexColor);
       }
     });
   }
 
   setSelectedRoughness(val) {
-    this.selectedObjects.forEach(mesh => {
-      if (mesh.material) {
-        mesh.material.roughness = val;
-      }
+    this.applyMaterial(mat => {
+      mat.roughness = val;
     });
   }
 
   setSelectedMetalness(val) {
-    this.selectedObjects.forEach(mesh => {
-      if (mesh.material) {
-        mesh.material.metalness = val;
-      }
+    this.applyMaterial(mat => {
+      mat.metalness = val;
     });
   }
 
   setSelectedWireframe(val) {
-    this.selectedObjects.forEach(mesh => {
-      if (mesh.material) {
-        mesh.material.wireframe = val;
-      }
+    this.applyMaterial(mat => {
+      mat.wireframe = val;
+      mat.needsUpdate = true;
     });
   }
 
   setSelectedOpacity(val) {
-    this.selectedObjects.forEach(mesh => {
-      if (mesh.material) {
-        mesh.material.transparent = val < 1.0;
-        mesh.material.opacity = val;
-      }
+    const isTransparent = val < 1.0;
+    this.applyMaterial(mat => {
+      mat.transparent = isTransparent;
+      mat.opacity = val;
+      mat.depthWrite = !isTransparent;
+      mat.needsUpdate = true;
     });
   }
 }

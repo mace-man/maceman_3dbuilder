@@ -48,6 +48,8 @@ jobs:
         run: npm ci
 
       - name: Build application
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
         run: ${{ matrix.build_cmd }}
 
       - name: Upload build artifacts

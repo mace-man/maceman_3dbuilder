@@ -142,6 +142,48 @@ npm run build
 
 ---
 
+## 🖥️ デスクトップGUIアプリ（Electron）の実行とビルド
+
+本ツールはブラウザ版に加えて、**Electron** によるネイティブGUIデスクトップアプリケーション（Windows / Mac / Linux）に対応しています。
+
+### 1. 開発モードで起動
+```bash
+npm run electron:dev
+```
+Vite開発サーバーとElectronウィンドウが連携して起動します。
+
+### 2. 実行ファイルのビルド
+
+各OS向けの実行ファイルは `release/` ディレクトリに出力されます。
+
+- **Windows用実行ファイル（.exe）のビルド**:
+  ```bash
+  npm run build:win
+  ```
+  - `release/mace-man 3D Builder Setup 1.1.0.exe`（NSISインストーラー）
+  - `release/mace-man 3D Builder 1.1.0.exe`（インストール不要のポータブル実行ファイル）
+
+- **Linux用実行ファイルのビルド**:
+  ```bash
+  # Windowsホスト上からビルドする場合（展開・実行可能なzipアーカイブ）
+  npm run build:linux:zip
+
+  # Linux環境でAppImageやdebを出力する場合
+  npm run build:linux
+  ```
+  - `release/mace-man-3dbuilder-1.1.0.zip`
+
+- **macOS用実行ファイル（.dmg / .zip）のビルド**:
+  ```bash
+  npm run build:mac
+  ```
+  *(※macOS向けビルドはAppleの規約およびツールの関係上、macOS環境または後述のGitHub Actions CIから出力します)*
+
+### 3. GitHub Actions による全OS自動ビルド＆リリース
+`.github/workflows/build.yml` を同梱しているため、リポジトリをプッシュまたは `v1.1.0` などのタグを作成するだけで、GitHub上の Windows / macOS / Linux ランナーが並列で実行ファイルを自動ビルドし、GitHub Releases へ即座に配布バイナリをアップロードします。
+
+---
+
 ## 📁 ディレクトリ構成
 
 ```

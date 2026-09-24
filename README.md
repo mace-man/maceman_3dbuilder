@@ -144,6 +144,48 @@ Select two or more objects (hold `Shift` or `Ctrl` while clicking), then choose 
 
 ---
 
+## 🖥️ Desktop GUI Application (Electron)
+
+In addition to the web browser version, **mace-man 3D Builder** can be run and built as a standalone native desktop application for Windows, macOS, and Linux using **Electron**.
+
+### 1. Run in Development Mode
+```bash
+npm run electron:dev
+```
+Launches the Vite dev server and the Electron application window with hot module replacement (HMR).
+
+### 2. Building Standalone Executables
+
+Build outputs are saved to the `release/` directory:
+
+- **Windows Executables (.exe)**:
+  ```bash
+  npm run build:win
+  ```
+  - `release/mace-man 3D Builder Setup 1.1.0.exe` (NSIS Installer with desktop/start menu shortcuts)
+  - `release/mace-man 3D Builder 1.1.0.exe` (Zero-install Portable Executable)
+
+- **Linux Executables**:
+  ```bash
+  # Build zip archive on Windows host:
+  npm run build:linux:zip
+
+  # Build AppImage & deb on Linux host:
+  npm run build:linux
+  ```
+  - `release/mace-man-3dbuilder-1.1.0.zip`
+
+- **macOS Application (.dmg / .zip)**:
+  ```bash
+  npm run build:mac
+  ```
+  *(Note: macOS requires a macOS host or the included GitHub Actions CI runner to produce signed/packaged .dmg or .zip files).*
+
+### 3. Automated Multi-Platform CI/CD with GitHub Actions
+A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.0`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
+
+---
+
 ## 📁 Project Directory Structure
 
 ```

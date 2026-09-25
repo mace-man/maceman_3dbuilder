@@ -169,6 +169,17 @@
             </button>
           </div>
 
+          <!-- エンボスグループ -->
+          <div class="tool-group">
+            <button id="btn-start-emboss" class="tool-btn" data-i18n-title="embossTitle" title="モデル表面にテキストやパターンをエンボス（浮き彫り/型抜き）">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 7V4h16v3M9 20h6M12 4v16" />
+                <path d="M7 16l2 2 4-4" stroke-width="1.5" stroke-dasharray="1 1" opacity="0.6"/>
+              </svg>
+              <span data-i18n="emboss">エンボス</span>
+            </button>
+          </div>
+
           <!-- 分割グループ -->
           <div class="tool-group">
             <button id="btn-start-split" class="tool-btn" data-i18n-title="splitTitle" title="平面でモデルを切断・スライス">
@@ -392,6 +403,108 @@
           <div style="display:flex; gap:6px; margin-left:4px;">
             <button id="btn-simplify-apply" class="btn-primary" style="padding:4px 12px;" data-i18n="simplifyApply">決定</button>
             <button id="btn-simplify-cancel" class="btn-secondary" style="padding:4px 10px;" data-i18n="simplifyCancel">キャンセル</button>
+          </div>
+        </div>
+
+        <!-- Emboss Floating Controls (エンボス中のみ表示) -->
+        <div id="emboss-controls" class="split-overlay hidden emboss-overlay">
+          <div class="emboss-header">
+            <span style="font-weight:600; font-size:13px; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 7V4h16v3M9 20h6M12 4v16" />
+              </svg>
+              <span data-i18n="embossHeader">エンボス設定</span>
+            </span>
+            <!-- モード切り替え (凸: エンボス / 凹: 型抜き) -->
+            <div class="emboss-mode-tabs">
+              <button id="btn-emboss-mode-add" class="split-btn active" data-i18n="embossModeAdd">エンボス (凸)</button>
+              <button id="btn-emboss-mode-sub" class="split-btn" data-i18n="embossModeSub">型抜き (凹)</button>
+            </div>
+          </div>
+
+          <div class="emboss-row">
+            <!-- タイプ選択タブ -->
+            <div class="emboss-type-tabs">
+              <button id="btn-emboss-type-text" class="emboss-type-btn active" data-type="text" data-i18n="embossTypeText">テキスト</button>
+              <button id="btn-emboss-type-shape" class="emboss-type-btn" data-type="shape" data-i18n="embossTypeShape">シェイプ</button>
+              <button id="btn-emboss-type-image" class="emboss-type-btn" data-type="image" data-i18n="embossTypeImage">画像</button>
+            </div>
+
+            <!-- テキスト入力グループ -->
+            <div id="emboss-text-group" class="emboss-group">
+              <input type="text" id="emboss-text-input" value="3D" placeholder="文字を入力" style="width:110px;">
+              <select id="emboss-font-select" style="width:110px;">
+                <option value="sans-serif">ゴシック (標準)</option>
+                <option value="serif">明朝 (Serif)</option>
+                <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                <option value="'Meiryo', sans-serif">メイリオ (Meiryo)</option>
+                <option value="'Yu Gothic', sans-serif">游ゴシック (Yu Gothic)</option>
+                <option value="'Impact', sans-serif">Impact (極太)</option>
+                <option value="'Arial Black', sans-serif">Arial Black</option>
+                <option value="'Courier New', monospace">等幅 (Courier)</option>
+              </select>
+              <div class="emboss-style-buttons">
+                <button id="btn-emboss-bold" class="icon-toggle active" title="太字 (Bold)"><b>B</b></button>
+                <button id="btn-emboss-italic" class="icon-toggle" title="斜体 (Italic)"><i>I</i></button>
+              </div>
+            </div>
+
+            <!-- プリセットシェイプグループ -->
+            <div id="emboss-shape-group" class="emboss-group hidden">
+              <select id="emboss-shape-select" style="width:130px;">
+                <option value="star">★ 星 (Star)</option>
+                <option value="heart">♥ ハート (Heart)</option>
+                <option value="circle">● 円 (Circle)</option>
+                <option value="square">■ 四角 (Square)</option>
+                <option value="hexagon">⬡ 六角形 (Hexagon)</option>
+                <option value="arrow">↑ 矢印 (Arrow)</option>
+                <option value="check">✔ チェック (Check)</option>
+                <option value="smile">☺ スマイル (Smile)</option>
+              </select>
+            </div>
+
+            <!-- 画像読込グループ -->
+            <div id="emboss-image-group" class="emboss-group hidden">
+              <label class="btn-secondary" style="padding:4px 8px; font-size:11px; cursor:pointer;">
+                <span data-i18n="embossSelectImage">画像選択</span>
+                <input type="file" id="emboss-image-file" accept="image/png,image/jpeg,image/svg+xml" style="display:none;">
+              </label>
+              <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                <input type="checkbox" id="emboss-image-invert">
+                <span data-i18n="embossInvert">反転</span>
+              </label>
+              <span id="emboss-image-filename" style="font-size:11px; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.8;"></span>
+            </div>
+          </div>
+
+          <div class="emboss-row">
+            <!-- 深さとサイズスライダー -->
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label style="font-size:11px;" data-i18n="embossDepth">深さ:</label>
+              <input type="range" id="emboss-depth-slider" min="0.5" max="30" step="0.5" value="3" style="width:75px;">
+              <span id="emboss-depth-val" style="font-size:11px; font-weight:600; min-width:32px;">3mm</span>
+
+              <label style="font-size:11px; margin-left:4px;" data-i18n="embossSize">サイズ:</label>
+              <input type="range" id="emboss-size-slider" min="5" max="150" step="1" value="35" style="width:75px;">
+              <span id="emboss-size-val" style="font-size:11px; font-weight:600; min-width:32px;">35mm</span>
+            </div>
+
+            <!-- 面スナップ (Snap to Face) -->
+            <div class="emboss-face-snaps">
+              <span style="font-size:10px; color:var(--text-secondary);" data-i18n="embossSnap">面スナップ:</span>
+              <button class="face-snap-btn" data-face="top" title="上面">上</button>
+              <button class="face-snap-btn" data-face="front" title="前面">前</button>
+              <button class="face-snap-btn" data-face="back" title="背面">後</button>
+              <button class="face-snap-btn" data-face="left" title="左面">左</button>
+              <button class="face-snap-btn" data-face="right" title="右面">右</button>
+              <button class="face-snap-btn" data-face="bottom" title="底面">底</button>
+            </div>
+
+            <!-- 確定 / キャンセル -->
+            <div style="display:flex; gap:6px; margin-left:auto;">
+              <button id="btn-emboss-apply" class="btn-primary" style="padding:4px 14px;" data-i18n="embossApply">適用</button>
+              <button id="btn-emboss-cancel" class="btn-secondary" style="padding:4px 10px;" data-i18n="embossCancel">キャンセル</button>
+            </div>
           </div>
         </div>
       </section>

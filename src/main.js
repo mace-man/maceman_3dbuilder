@@ -6,6 +6,7 @@ import { Primitives } from './operations/Primitives.js';
 import { BooleanOps } from './operations/BooleanOps.js';
 import { SplitOps } from './operations/SplitOps.js';
 import { SimplifyOps } from './operations/SimplifyOps.js';
+import { EmbossOps } from './operations/EmbossOps.js';
 import { TransformOps } from './operations/TransformOps.js';
 import { Importer } from './io/Importer.js';
 import { Exporter } from './io/Exporter.js';
@@ -14,6 +15,23 @@ import { I18n } from './ui/I18n.js';
 
 class App {
   constructor() {
+    // Electron環境での設定同期
+    if (window.electronAPI && typeof window.electronAPI.getInitialSettings === 'function') {
+      window.electronAPI.getInitialSettings().then((settings) => {
+        if (settings && settings.language && settings.language !== I18n.currentLang) {
+          I18n.setLanguage(settings.language, false);
+        }
+      }).catch((err) => {
+        console.warn('Could not load initial settings from Electron:', err);
+      });
+    }
+
+    if (window.electronAPI && typeof window.electronAPI.onLanguageChange === 'function') {
+      window.electronAPI.onLanguageChange((lang) => {
+        I18n.setLanguage(lang, false);
+      });
+    }
+
     // 言語設定初期化
     I18n.applyTranslations();
     const langSelect = document.getElementById('lang-select');
@@ -25,6 +43,12 @@ class App {
     }
 
     I18n.onChange(() => {
+      if (this.sm && this.sm.objects && this.sm.objects.length === 1) {
+        const single = this.sm.objects[0];
+        if (single.name === '立方体' || single.name === 'Cube') {
+          single.name = I18n.t('cube');
+        }
+      }
       this.updateOutliner();
       this.updateInspector();
       this.updateStatusBar();
@@ -49,11 +73,23 @@ class App {
     this.simplifyInitialStats = null;
     this.simplifyCache = new Map();
 
+    // エンボス状態
+    this.embossActive = false;
+    this.embossTarget = null;
+    this.embossMesh = null;
+    this.embossMode = 'emboss'; // 'emboss' (凸) | 'deboss' (凹)
+    this.embossType = 'text'; // 'text' | 'shape' | 'image'
+    this.embossCurrentFace = 'top';
+    this.embossImageSource = null;
+    this.embossSvgSource = null;
+    this.embossDebounceTimer = null;
+
     this.bindEvents();
     this.setupDropZone();
 
     // 初期サンプルオブジェクトを追加
     const initialCube = Primitives.createCube(30, 30, 30, 0x0078d4);
+    initialCube.name = I18n.t('cube');
     this.sm.addObject(initialCube);
     this.history.captureSnapshot();
 
@@ -195,6 +231,106 @@ class App {
       this.updateSimplify(parseInt(e.target.value, 10));
     });
 
+    // 6.7. エンボス (Emboss)
+    document.getElementById('btn-start-emboss').addEventListener('click', () => this.startEmboss());
+    document.getElementById('btn-emboss-apply').addEventListener('click', () => this.applyEmboss());
+    document.getElementById('btn-emboss-cancel').addEventListener('click', () => this.cancelEmboss());
+
+    // エンボスモード切替 (凸 / 凹)
+    const btnEmbossModeAdd = document.getElementById('btn-emboss-mode-add');
+    const btnEmbossModeSub = document.getElementById('btn-emboss-mode-sub');
+    btnEmbossModeAdd.addEventListener('click', () => {
+      btnEmbossModeAdd.classList.add('active');
+      btnEmbossModeSub.classList.remove('active');
+      this.embossMode = 'emboss';
+      this.updateEmbossMeshColor();
+    });
+    btnEmbossModeSub.addEventListener('click', () => {
+      btnEmbossModeSub.classList.add('active');
+      btnEmbossModeAdd.classList.remove('active');
+      this.embossMode = 'deboss';
+      this.updateEmbossMeshColor();
+    });
+
+    // タイプ切替タブ (text, shape, image)
+    const typeButtons = document.querySelectorAll('.emboss-type-btn');
+    typeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        typeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.embossType = btn.dataset.type;
+
+        document.getElementById('emboss-text-group').classList.toggle('hidden', this.embossType !== 'text');
+        document.getElementById('emboss-shape-group').classList.toggle('hidden', this.embossType !== 'shape');
+        document.getElementById('emboss-image-group').classList.toggle('hidden', this.embossType !== 'image');
+
+        this.scheduleRebuildEmboss();
+      });
+    });
+
+    // テキスト・フォント・スタイル変更
+    document.getElementById('emboss-text-input').addEventListener('input', () => this.scheduleRebuildEmboss());
+    document.getElementById('emboss-font-select').addEventListener('change', () => this.scheduleRebuildEmboss());
+
+    const btnBold = document.getElementById('btn-emboss-bold');
+    btnBold.addEventListener('click', () => {
+      btnBold.classList.toggle('active');
+      this.scheduleRebuildEmboss();
+    });
+    const btnItalic = document.getElementById('btn-emboss-italic');
+    btnItalic.addEventListener('click', () => {
+      btnItalic.classList.toggle('active');
+      this.scheduleRebuildEmboss();
+    });
+
+    // シェイプ選択
+    document.getElementById('emboss-shape-select').addEventListener('change', () => this.scheduleRebuildEmboss());
+
+    // 画像読み込み
+    const imgInput = document.getElementById('emboss-image-file');
+    imgInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('emboss-image-filename').textContent = file.name;
+        if (file.type === 'image/svg+xml') {
+          const text = await file.text();
+          this.embossSvgSource = text;
+          this.embossImageSource = null;
+        } else {
+          const url = URL.createObjectURL(file);
+          this.embossImageSource = url;
+          this.embossSvgSource = null;
+        }
+        Notification.info(I18n.t('embossImageLoaded', file.name));
+        this.scheduleRebuildEmboss();
+      }
+    });
+
+    document.getElementById('emboss-image-invert').addEventListener('change', () => this.scheduleRebuildEmboss());
+
+    // 深さ & サイズスライダー
+    const depthSlider = document.getElementById('emboss-depth-slider');
+    const depthVal = document.getElementById('emboss-depth-val');
+    depthSlider.addEventListener('input', (e) => {
+      depthVal.textContent = `${e.target.value}mm`;
+      this.scheduleRebuildEmboss();
+    });
+
+    const sizeSlider = document.getElementById('emboss-size-slider');
+    const sizeVal = document.getElementById('emboss-size-val');
+    sizeSlider.addEventListener('input', (e) => {
+      sizeVal.textContent = `${e.target.value}mm`;
+      this.scheduleRebuildEmboss();
+    });
+
+    // 面スナップ
+    document.querySelectorAll('.face-snap-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const face = btn.dataset.face;
+        this.setEmbossFace(face);
+      });
+    });
+
     // 7. ペイント
     const colorInput = document.getElementById('paint-color');
     colorInput.addEventListener('input', (e) => {
@@ -294,11 +430,23 @@ class App {
           this.applySimplify();
         }
       }
+      if (this.embossActive) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          this.cancelEmboss();
+        } else if (e.key === 'Enter' && e.target.tagName !== 'INPUT') {
+          e.preventDefault();
+          this.applyEmboss();
+        }
+      }
     });
 
     this.sm.on('selectionChanged', () => {
       if (this.simplifyActive && (!this.sm.selectedObjects.includes(this.simplifyTarget))) {
         this.cancelSimplify();
+      }
+      if (this.embossActive && (!this.sm.selectedObjects.includes(this.embossTarget))) {
+        this.cancelEmboss();
       }
       this.updateOutliner();
       this.updateInspector();
@@ -460,6 +608,9 @@ class App {
     if (this.sliceActive) {
       this.cancelSplit();
     }
+    if (this.embossActive) {
+      this.cancelEmboss();
+    }
 
     this.simplifyTarget = this.sm.selectedObjects[0];
     if (!this.simplifyTarget.geometry) {
@@ -610,6 +761,191 @@ class App {
     this.simplifyMaxSafe = null;
     this.simplifyCache.clear();
 
+    this.updateInspector();
+    this.updateStatusBar();
+  }
+
+  // --- エンボス (Emboss) 操作 ---
+
+  startEmboss() {
+    if (this.sm.selectedObjects.length === 0) {
+      Notification.warning(I18n.t('embossPrompt'));
+      return;
+    }
+
+    if (this.sliceActive) this.cancelSplit();
+    if (this.simplifyActive) this.cancelSimplify();
+
+    this.embossTarget = this.sm.selectedObjects[0];
+    if (!this.embossTarget.geometry) {
+      Notification.warning(I18n.t('embossPrompt'));
+      return;
+    }
+
+    this.embossActive = true;
+    this.embossCurrentFace = 'top';
+
+    // UIオーバーレイを表示
+    document.getElementById('emboss-controls').classList.remove('hidden');
+
+    // 初期エンボスメッシュを生成して配置
+    this.rebuildEmbossGeometry(true);
+  }
+
+  scheduleRebuildEmboss() {
+    if (!this.embossActive) return;
+    if (this.embossDebounceTimer) {
+      clearTimeout(this.embossDebounceTimer);
+    }
+    this.embossDebounceTimer = setTimeout(() => {
+      this.rebuildEmbossGeometry(false);
+    }, 120);
+  }
+
+  async rebuildEmbossGeometry(isInitial = false) {
+    if (!this.embossActive || !this.embossTarget) return;
+
+    try {
+      const text = document.getElementById('emboss-text-input').value || '3D';
+      const fontFamily = document.getElementById('emboss-font-select').value;
+      const isBold = document.getElementById('btn-emboss-bold').classList.contains('active');
+      const isItalic = document.getElementById('btn-emboss-italic').classList.contains('active');
+      const shapeType = document.getElementById('emboss-shape-select').value;
+      const invert = document.getElementById('emboss-image-invert').checked;
+
+      const depth = parseFloat(document.getElementById('emboss-depth-slider').value) || 3;
+      const targetSize = parseFloat(document.getElementById('emboss-size-slider').value) || 35;
+
+      let shapes = [];
+      if (this.embossType === 'text') {
+        shapes = EmbossOps.createShapesFromText(text, {
+          fontFamily,
+          fontWeight: isBold ? 'bold' : 'normal',
+          fontStyle: isItalic ? 'italic' : 'normal'
+        });
+      } else if (this.embossType === 'shape') {
+        shapes = EmbossOps.createShapesFromPreset(shapeType);
+      } else if (this.embossType === 'image') {
+        if (this.embossSvgSource) {
+          shapes = EmbossOps.createShapesFromSVG(this.embossSvgSource);
+        } else if (this.embossImageSource) {
+          shapes = await EmbossOps.createShapesFromImage(this.embossImageSource, invert);
+        } else {
+          shapes = EmbossOps.createShapesFromPreset('star');
+        }
+      }
+
+      if (!shapes || shapes.length === 0) return;
+
+      const color = this.embossMode === 'emboss' ? 0x00bcf2 : 0xff8c00;
+      const newMesh = EmbossOps.createExtrudeMesh(shapes, { depth, bevelEnabled: false, color });
+
+      // ジオメトリ全体を指定サイズ (mm) に一括スケーリング & センタリング
+      newMesh.geometry.computeBoundingBox();
+      const bb = newMesh.geometry.boundingBox;
+      const w = bb.max.x - bb.min.x;
+      const h = bb.max.y - bb.min.y;
+      const maxDim = Math.max(w, h, 0.001);
+      const scale = targetSize / maxDim;
+      newMesh.geometry.scale(scale, scale, 1);
+      newMesh.geometry.center();
+      newMesh.geometry.computeVertexNormals();
+
+      if (isInitial || !this.embossMesh) {
+        if (this.embossMesh) {
+          this.viewer.scene.remove(this.embossMesh);
+          this.embossMesh.geometry.dispose();
+        }
+        this.embossMesh = newMesh;
+        this.viewer.scene.add(this.embossMesh);
+
+        // 初期配置 (指定面にスナップ)
+        this.setEmbossFace(this.embossCurrentFace);
+      } else {
+        // 既存のメッシュの位置・回転・スケールを維持してジオメトリのみ更新
+        this.embossMesh.geometry.dispose();
+        this.embossMesh.geometry = newMesh.geometry;
+        this.updateEmbossMeshColor();
+      }
+
+      // TransformControls をエンボスメッシュにアタッチ
+      if (this.sm.transformControls) {
+        this.sm.transformControls.attach(this.embossMesh);
+      }
+    } catch (err) {
+      console.error('Emboss rebuild error:', err);
+    }
+  }
+
+  updateEmbossMeshColor() {
+    if (!this.embossMesh) return;
+    const color = this.embossMode === 'emboss' ? 0x00bcf2 : 0xff8c00;
+    this.embossMesh.material.color.setHex(color);
+  }
+
+  setEmbossFace(face) {
+    if (!this.embossTarget || !this.embossMesh) return;
+    this.embossCurrentFace = face;
+    const depth = parseFloat(document.getElementById('emboss-depth-slider').value) || 3;
+    // 凸なら半分外側に出し、凹なら深さ分埋め込む
+    const offset = this.embossMode === 'emboss' ? (depth * 0.45) : (-depth * 0.45);
+    const placement = EmbossOps.getFacePlacement(this.embossTarget, face, offset);
+
+    this.embossMesh.position.copy(placement.position);
+    this.embossMesh.rotation.copy(placement.rotation);
+    this.embossMesh.scale.set(1, 1, 1);
+    this.embossMesh.updateMatrixWorld(true);
+  }
+
+  applyEmboss() {
+    if (!this.embossActive || !this.embossTarget || !this.embossMesh) return;
+
+    this.history.captureSnapshot();
+
+    setTimeout(() => {
+      try {
+        const resultMesh = EmbossOps.applyEmboss(this.embossTarget, this.embossMesh, this.embossMode);
+
+        const targetName = this.embossTarget.name || 'モデル';
+        resultMesh.name = `${targetName} (${this.embossMode === 'emboss' ? 'エンボス' : '型抜き'})`;
+
+        this.sm.removeObject(this.embossTarget);
+        this.sm.addObject(resultMesh);
+        this.sm.selectObject(resultMesh);
+
+        Notification.success(I18n.t('embossSuccess'));
+      } catch (err) {
+        console.error('Emboss apply failed:', err);
+        Notification.error(I18n.t('embossError'));
+      } finally {
+        this.cleanupEmboss();
+      }
+    }, 50);
+  }
+
+  cancelEmboss() {
+    if (!this.embossActive) return;
+    this.cleanupEmboss();
+  }
+
+  cleanupEmboss() {
+    this.embossActive = false;
+    document.getElementById('emboss-controls').classList.add('hidden');
+
+    if (this.embossMesh) {
+      this.viewer.scene.remove(this.embossMesh);
+      if (this.embossMesh.geometry) this.embossMesh.geometry.dispose();
+      if (this.embossMesh.material) this.embossMesh.material.dispose();
+      this.embossMesh = null;
+    }
+
+    if (this.embossTarget && this.sm.objects.includes(this.embossTarget)) {
+      this.sm.selectObject(this.embossTarget);
+    } else if (this.sm.transformControls) {
+      this.sm.transformControls.detach();
+    }
+
+    this.embossTarget = null;
     this.updateInspector();
     this.updateStatusBar();
   }

@@ -3,6 +3,7 @@ export const translations = {
   ja: {
     // Brand & Header
     appName: 'mace-man 3D Builder',
+    docTitle: 'mace-man 3D Builder - ローカル3Dモデルエディター',
 
     // Quick Actions
     undoTitle: '元に戻す (Ctrl+Z)',
@@ -13,11 +14,11 @@ export const translations = {
     deleteTitle: '削除 (Delete)',
 
     // Ribbon Tabs
-    tabInsert: '挿入 (Insert)',
-    tabEdit: '編集 (Edit)',
-    tabPaint: 'ペイント (Paint)',
-    tabView: '表示 (View)',
-    tabFile: 'ファイル (File)',
+    tabInsert: '挿入',
+    tabEdit: '編集',
+    tabPaint: 'ペイント',
+    tabView: '表示',
+    tabFile: 'ファイル',
 
     // Insert Tab
     cube: '立方体',
@@ -44,7 +45,7 @@ export const translations = {
     subtractTitle: '型抜き (選択モデルから他を削る)',
     intersect: '交差',
     intersectTitle: '交差 (重なり合った部分だけを残す)',
-    split: '分割 (Split)',
+    split: '分割',
     splitTitle: '平面でモデルを切断・スライス',
     alignCenter: '整列',
     alignCenterTitle: '選択オブジェクトを中央揃え',
@@ -114,6 +115,27 @@ export const translations = {
     simplifyHoleLimitNotice: '穴あき防止リミット到達',
     simplifyCannotReduce: '穴あき防止のためこれ以上単純化できません',
 
+    // Emboss Overlay & Buttons
+    emboss: 'エンボス',
+    embossTitle: 'モデル表面にテキストやパターンをエンボス（浮き彫り/型抜き）',
+    embossHeader: 'エンボス設定',
+    embossModeAdd: 'エンボス (凸)',
+    embossModeSub: '型抜き (凹)',
+    embossTypeText: 'テキスト',
+    embossTypeShape: 'シェイプ',
+    embossTypeImage: '画像',
+    embossSelectImage: '画像選択',
+    embossInvert: '反転',
+    embossDepth: '深さ:',
+    embossSize: 'サイズ:',
+    embossSnap: '面スナップ:',
+    embossApply: '適用',
+    embossCancel: 'キャンセル',
+    embossPrompt: 'エンボスするオブジェクトを選択してください',
+    embossSuccess: 'エンボスを適用しました',
+    embossError: 'エンボス処理に失敗しました',
+    embossImageLoaded: '画像を読み込みました: {0}',
+
     // Outliner & Inspector
     outlinerTitle: 'アイテム一覧',
     inspectorTitle: 'プロパティ',
@@ -174,6 +196,7 @@ export const translations = {
   en: {
     // Brand & Header
     appName: 'mace-man 3D Builder',
+    docTitle: 'mace-man 3D Builder - Local 3D Model Editor',
 
     // Quick Actions
     undoTitle: 'Undo (Ctrl+Z)',
@@ -285,6 +308,27 @@ export const translations = {
     simplifyHoleLimitNotice: 'Hole-prevention limit reached',
     simplifyCannotReduce: 'Cannot simplify further to prevent holes',
 
+    // Emboss Overlay & Buttons
+    emboss: 'Emboss',
+    embossTitle: 'Emboss text or patterns onto model surface (Raised/Debossed)',
+    embossHeader: 'Emboss Settings',
+    embossModeAdd: 'Emboss (Raised)',
+    embossModeSub: 'Deboss (Carve)',
+    embossTypeText: 'Text',
+    embossTypeShape: 'Shapes',
+    embossTypeImage: 'Image',
+    embossSelectImage: 'Choose Image',
+    embossInvert: 'Invert',
+    embossDepth: 'Depth:',
+    embossSize: 'Size:',
+    embossSnap: 'Snap to Face:',
+    embossApply: 'Apply',
+    embossCancel: 'Cancel',
+    embossPrompt: 'Select an object to emboss',
+    embossSuccess: 'Emboss applied successfully',
+    embossError: 'Failed to apply emboss',
+    embossImageLoaded: 'Image loaded: {0}',
+
     // Outliner & Inspector
     outlinerTitle: 'Items',
     inspectorTitle: 'Properties',
@@ -344,15 +388,25 @@ export const translations = {
 };
 
 export class I18n {
-  static currentLang = localStorage.getItem('app_language') || 'ja';
+  static currentLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('app_language') : null) || 'ja';
   static listeners = [];
 
-  static setLanguage(lang) {
+  static setLanguage(lang, syncToElectron = true) {
     if (translations[lang]) {
       this.currentLang = lang;
-      localStorage.setItem('app_language', lang);
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('app_language', lang);
+        } catch (e) {
+          console.error('Failed to save language to localStorage:', e);
+        }
+      }
       this.applyTranslations();
       this.listeners.forEach(cb => cb(lang));
+
+      if (syncToElectron && typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.saveLanguage === 'function') {
+        window.electronAPI.saveLanguage(lang);
+      }
     }
   }
 
@@ -370,6 +424,14 @@ export class I18n {
   }
 
   static applyTranslations() {
+    if (typeof document === 'undefined') return;
+
+    document.documentElement.lang = this.currentLang;
+    const docTitle = this.t('docTitle');
+    if (docTitle) {
+      document.title = docTitle;
+    }
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       el.textContent = this.t(key);

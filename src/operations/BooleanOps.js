@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Evaluator, Brush, ADDITION, SUBTRACTION, INTERSECTION } from 'three-bvh-csg';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export class BooleanOps {
   static getEvaluator() {
@@ -13,17 +14,19 @@ export class BooleanOps {
   // メッシュからBrushを構築（ワールド行列をベイク）
   static meshToBrush(mesh) {
     mesh.updateMatrixWorld(true);
-    const geom = mesh.geometry.clone();
+    let geom = mesh.geometry.clone();
     geom.applyMatrix4(mesh.matrixWorld);
     
-    // インデックスがない場合は付与
-    let indexedGeom = geom;
+    // three-bvh-csg はインデックス付き・重複頂点マージ済みジオメトリで最も安定して動作
     if (!geom.index) {
-      // three-bvh-csg はインデックス付きジオメトリを推奨
-      // 必要に応じて生成
+      try {
+        geom = BufferGeometryUtils.mergeVertices(geom, 1e-4);
+      } catch (e) {
+        // フォールバック
+      }
     }
 
-    const brush = new Brush(indexedGeom, mesh.material.clone());
+    const brush = new Brush(geom, mesh.material ? mesh.material.clone() : new THREE.MeshStandardMaterial());
     brush.updateMatrixWorld(true);
     return brush;
   }
@@ -71,7 +74,16 @@ export class BooleanOps {
     geom.computeBoundingBox();
 
     // ワールド座標原点にリセットしたメッシュとする
-    const mesh = new THREE.Mesh(geom, originalMesh.material.clone());
+    let mat;
+    if (Array.isArray(originalMesh.material)) {
+      mat = originalMesh.material.map(m => m.clone());
+    } else if (originalMesh.material && typeof originalMesh.material.clone === 'function') {
+      mat = originalMesh.material.clone();
+    } else {
+      mat = new THREE.MeshStandardMaterial({ color: 0x0078d4, roughness: 0.35, metalness: 0.15 });
+    }
+
+    const mesh = new THREE.Mesh(geom, mat);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.name = originalMesh.name ? `${originalMesh.name} (${defaultName})` : defaultName;

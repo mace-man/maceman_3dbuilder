@@ -132,12 +132,28 @@ Just like in Microsoft 3D Builder, reduce mesh vertex and polygon count (decimat
 4. Click **Apply** (or press `Enter`) to confirm (can be undone with `Ctrl+Z`).
 5. Click **Cancel** (or press `Esc`) to discard changes and revert to original mesh.
 
-### 7. Painting & Materials (Paint Tab)
+### 7. Emboss & Deboss (Edit Tab)
+Identical in specification to Microsoft 3D Builder's Emboss feature, emboss (raise) or deboss (carve/subtract) custom text, shapes, or images directly onto 3D model surfaces.
+1. Select an object and click **Emboss** in the Edit tab.
+2. The Emboss floating toolbar opens and places an interactive extruded 3D element on the model.
+3. Settings:
+   - **Mode**: Toggle between **Emboss (Raised / Additive)** and **Deboss (Carve / Subtractive)**.
+   - **Type**:
+     - **Text**: Input custom text (supports Japanese, Latin, numbers, symbols), choose font family, and toggle bold/italic.
+     - **Shapes**: Choose preset geometry such as Star, Heart, Circle, Square, Hexagon, Arrow, Checkmark, Smile.
+     - **Image**: Upload local PNG, JPEG, or SVG images with invert option.
+   - **Depth & Size**: Adjust extrusion depth and size with live 3D updates.
+   - **Snap to Face**: Instantly align and snap the emboss element to the Top, Front, Back, Left, Right, or Bottom face.
+   - **Interactive Gizmo**: Use the 3D Transform Gizmo directly on the canvas to translate, rotate, and scale.
+4. Click **Apply** (or press `Enter`) to execute CSG boolean operation (undoable with `Ctrl+Z`).
+5. Click **Cancel** (or press `Esc`) to cancel.
+
+### 8. Painting & Materials (Paint Tab)
 - Real-time color picker and preset palette swatches.
 - Roughness and Metalness sliders for surface finish.
 - Wireframe toggle and X-Ray (translucent) preview modes.
 
-### 8. File Import & Export (File Tab)
+### 9. File Import & Export (File Tab)
 - **Import**: Click "Open" or simply **drag and drop** files (.stl, .obj, .3mf, .glb, .ply) directly onto the 3D canvas.
 - **Export**: Export selected objects or the entire scene to `.stl` (binary format, ideal for 3D printing), `.3mf` (modern 3D manufacturing format), `.obj`, `.glb`, or `.ply`.
 
@@ -175,8 +191,8 @@ Build outputs are saved to the `release/` directory:
   ```bash
   npm run build:win
   ```
-  - `release/mace-man 3D Builder Setup 1.1.3.exe` (NSIS Installer with desktop/start menu shortcuts)
-  - `release/mace-man 3D Builder 1.1.3.exe` (Zero-install Portable Executable)
+  - `release/mace-man 3D Builder Setup 1.1.4.exe` (NSIS Installer with desktop/start menu shortcuts)
+  - `release/mace-man 3D Builder 1.1.4.exe` (Zero-install Portable Executable)
 
 - **Linux Executables**:
   ```bash
@@ -186,7 +202,7 @@ Build outputs are saved to the `release/` directory:
   # Build AppImage & deb on Linux host:
   npm run build:linux
   ```
-  - `release/mace-man-3dbuilder-1.1.3.zip`
+  - `release/mace-man-3dbuilder-1.1.4.zip`
 
 - **macOS Application (.dmg / .zip)**:
   ```bash
@@ -195,11 +211,21 @@ Build outputs are saved to the `release/` directory:
   *(Note: macOS requires a macOS host or the included GitHub Actions CI runner to produce signed/packaged .dmg or .zip files).*
 
 ### 3. Automated Multi-Platform CI/CD with GitHub Actions
-A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.3`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
+A complete workflow is provided in `.github/workflows/build.yml`. Pushing to your GitHub repository or creating a version tag (e.g. `v1.1.4`) automatically triggers native runners (`windows-latest`, `macos-latest`, `ubuntu-latest`) to build Windows `.exe`, macOS `.dmg`/`.zip`, and Linux `.AppImage`/`.deb` packages and upload them directly to GitHub Releases.
 
 ---
 
 ## 📝 Changelog
+
+### v1.1.4
+- **New "Emboss & Deboss" Tool (identical to Microsoft 3D Builder)**:
+  - Added full-featured Emboss and Deboss tool to the Edit tab for embossing (raised/additive) or debossing (carved/subtractive) text, shapes, or images directly on model surfaces.
+  - Text supports all languages (Japanese kanji/kana, Latin, symbols, numbers), multiple system font families, and bold/italic styles.
+  - Generates watertight, manifold 3D extruded geometry with counter holes (e.g. 'A', 'B', '日') using corrected Marching Squares isocontour tracing and Shoelace signed area classification.
+  - Full parameter controls for extrusion Depth (mm), Size (mm), Snap to Face (Top, Front, Back, Left, Right, Bottom), and interactive 3D Transform Gizmo positioning.
+  - Integrated `BufferGeometryUtils.mergeVertices` to guarantee robust CSG union and subtraction operations across all geometric topologies.
+- **Electron Desktop State Persistence**:
+  - Automatically preserves and restores window size, position, maximized state, and selected language locally across restarts.
 
 ### v1.1.3
 - **New "Mesh Simplification (Simplify)" Tool**:
